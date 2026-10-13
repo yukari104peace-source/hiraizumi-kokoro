@@ -1,10 +1,9 @@
-{% extends "base.html" %}{% block content %}<h1>平泉の細道</h1><p class="subtitle">〜一枚の写真から、千年のことばを〜</p><p>平泉の景色に、心に残るひとことを。</p>
-<p><a class="button" href="{{ url_for('post_new') }}">写真を投稿する</a></p>
-{% for post in posts %}<article><img src="{{ url_for('post_image', post_id=post.id) }}" alt="{{ post.location_other or {'chusonji':'中尊寺','motsuji':'毛越寺','other':'その他'}.get(post.location, '') }}の写真"><p>{{ post.user.username }} · {{ post.location_other or {'chusonji':'中尊寺','motsuji':'毛越寺','other':'その他'}.get(post.location, '') }}</p><h2>{{ post.word.phrase }} <small><a class="source" href="{{ post.word.reference_url }}" target="_blank" rel="noopener noreferrer">{{ post.word.source_label }}</a></small></h2><p>{{ post.word.reading }}</p><p class="caption">{{ post.caption }}</p>{% if current_user.is_authenticated and current_user.id == post.user_id %}
+{% extends "base.html" %}{% block content %}<h1 class="visually-hidden">平泉の写真とことば</h1><div class="feed-actions"><a class="button" href="{{ url_for('post_new') }}">写真を投稿する</a>{% if has_draft %}<a class="button secondary" href="{{ url_for('draft_resume') }}">下書きを再開する</a>{% endif %}</div>
+{% for post in posts %}<article class="post-card"><img src="{{ url_for('post_image', post_id=post.id) }}" alt="{{ post.location_other or {'chusonji':'中尊寺','motsuji':'毛越寺','other':'その他'}.get(post.location, '') }}の写真"><h2 class="word-phrase">{{ post.word.phrase }} <small><a class="source" href="{{ post.word.reference_url }}" target="_blank" rel="noopener noreferrer">{{ post.word.source_label }}</a></small></h2><p>{{ post.word.reading }}</p><p class="caption">{{ post.caption }}</p><div class="post-footer"><p>{{ post.user.username }} · {{ post.location_other or {'chusonji':'中尊寺','motsuji':'毛越寺','other':'その他'}.get(post.location, '') }}</p>{% if current_user.is_authenticated and current_user.id == post.user_id %}
 <p><a href="{{ url_for('post_edit', post_id=post.id) }}">投稿を編集する</a></p>
 <form class="delete-post-form" method="post" action="{{ url_for('post_delete', post_id=post.id) }}">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 <button type="submit" class="danger" disabled>投稿を削除する</button>
 <noscript><p>投稿の削除にはJavaScriptを有効にしてください。</p></noscript>
-</form>{% endif %}</article>{% else %}<p class="empty">まだ投稿がありません。</p>{% endfor %}
+</form>{% endif %}</div></article>{% else %}<p class="empty">まだ投稿がありません。</p>{% endfor %}
 <nav aria-label="ページ切り替え">{% if page > 1 %}<a href="{{ url_for('index', page=page-1) }}">前へ</a>{% endif %}<span>{{ page }}ページ</span>{% if has_next %}<a href="{{ url_for('index', page=page+1) }}">次へ</a>{% endif %}</nav>{% endblock %}

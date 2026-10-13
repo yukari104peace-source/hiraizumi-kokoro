@@ -42,7 +42,8 @@ def register_routes(app):
         total = query.count()
         if page > max(1, (total + 9) // 10):
             abort(404)
-        return render_template("index.html", posts=list(query.paginate(page, 10)), page=page, has_next=page * 10 < total)
+        has_draft = current_user.is_authenticated and Post.select().where((Post.user == current_user.id) & (Post.status == "draft")).exists()
+        return render_template("index.html", has_draft=has_draft, posts=list(query.paginate(page, 10)), page=page, has_next=page * 10 < total)
 
     @app.get("/register")
     def register_form():
