@@ -11,7 +11,7 @@
 <img id="photo-preview" {% if draft and draft.image_key %}src="{{ url_for('post_image', post_id=draft.id) }}"{% else %}hidden{% endif %} alt="選んだ写真のプレビュー">
 <div class="field">{{ form.location.label }}{{ form.location() }}</div>
 <div class="field" id="other-location" {% if form.location.data != 'other' %}hidden{% endif %}>{{ form.location_other.label }}{{ form.location_other(maxlength=100) }}</div>
-<section aria-labelledby="words-heading"><h2 id="words-heading">写真に添えることば</h2><button type="button" id="draw" data-url="{{ url_for('word_draw') }}">{{ 'もう一度引く' if words else 'ことばを引く' }}</button><div id="word-options" aria-live="polite">
+<section aria-labelledby="words-heading"><h2 id="words-heading">写真に添えることば</h2><p>すべてのことばを一巡するまで、2件ずつ重複せずに引けます。次の投稿でも続きから楽しめます。</p><button type="button" id="draw" data-url="{{ url_for('word_draw') }}">{{ 'もう一度引く' if words else 'ことばを引く' }}</button><div id="word-options" aria-live="polite">
 {% for word in words|default([]) %}<article><label><input type="radio" name="word_id" value="{{ word.id }}" data-suggestion="{{ word.suggested_caption }}" {% if draft.word_id == word.id %}checked{% endif %}> {{ word.phrase }}</label><p>{{ word.reading }}</p><p>{{ word.explanation }}</p><a class="source" href="{{ word.reference_url }}" target="_blank" rel="noopener noreferrer">{{ word.source_label }}</a></article>{% endfor %}</div></section>
 <div class="field">{{ form.caption.label }}{{ form.caption(rows=4, maxlength=300) }}<small>300文字以内。文章案は経典の引用ではなく、写真に添えるひとことです。</small></div>
 <button type="button" id="reset-caption" disabled>文章案に戻す</button>

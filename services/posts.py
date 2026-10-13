@@ -111,3 +111,36 @@ def delete_published_post(user_id, post_id):
         current_app.logger.exception('Post deleted; image cleanup required: %s', image_key)
         return False
     return True
+
+
+def update_published_post(user_id, post_id, version, form):
+    new_image = None
+    committed = False
+    old_image = None
+    if not form.location.data or not (form.caption.data or '').strip():
+        raise UnprocessableEntity('撮影場所と写真に添えるひとことを入力してください。')
+    try:
+        if form.photo.data and form.photo.data.filename:
+            new_image = save_image(form.photo.data, current_app.config['UPLOAD_DIR'],
+                max_bytes=current_app.config['MAX_IMAGE_BYTES'], max_pixels=current_app.config['MAX_IMAGE_PIXELS'])
+        with database.atomic('IMMEDIATE'):
+            post = Post.get_or_none((Post.id == post_id) & (Post.user == user_id) & (Post.status == 'published'))
+            if not post:
+                raise NotFound()
+            if post.version != version:
+                raise Conflict('別の操作で更新されています。入力内容を控えてから編集画面を開き直してください。')
+            values = dict(location=form.location.data,
+                location_other=(form.location_other.data or None) if form.location.data == 'other' else None,
+                caption=form.caption.data, updated_at=utcnow(), version=Post.version + 1)
+            if new_image:
+                old_image = post.image_key
+                values['image_key'] = new_image
+            changed = Post.update(**values).where((Post.id == post_id) & (Post.user == user_id) &
+                (Post.status == 'published') & (Post.version == version)).execute()
+            if changed != 1:
+                raise Conflict()
+        committed = True
+        remove_image(old_image)
+    finally:
+        if not committed:
+            remove_image(new_image)

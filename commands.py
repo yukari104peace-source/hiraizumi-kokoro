@@ -10,7 +10,7 @@ def register_commands(app):
     @with_appcontext
     def init_db():
         create_tables()
-        click.echo("DBの3テーブルを準備しました。既存データは削除していません。")
+        click.echo("DBのテーブルを準備しました。既存データは削除していません。")
 
     @app.cli.command("import-words")
     @click.argument("path", type=click.Path(exists=True, dir_okay=False))

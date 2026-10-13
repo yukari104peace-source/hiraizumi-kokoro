@@ -101,5 +101,15 @@ Post.add_index(SQL("CREATE UNIQUE INDEX IF NOT EXISTS posts_one_draft ON posts (
 Post.add_index(Post.status, Post.published_at.desc(), Post.id.desc())
 
 
+class WordDrawState(BaseModel):
+    user = ForeignKeyField(User, primary_key=True, backref="word_draw_state", on_delete="CASCADE")
+    seen_ids = TextField(default="[]")
+    last_ids = TextField(default="[]")
+    cycle = IntegerField(default=1, constraints=[Check("cycle >= 1")])
+
+    class Meta:
+        table_name = "word_draw_states"
+
+
 def create_tables():
-    database.create_tables([User, Word, Post])
+    database.create_tables([User, Word, Post, WordDrawState])

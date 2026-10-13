@@ -7,6 +7,9 @@ from models import Post, User, Word
 
 
 def safe_next(value):
+    import re
+    if value and re.fullmatch(r"/posts/[1-9][0-9]*/edit", value):
+        return value
     # Explicit allowlist prevents external redirect targets.
     return value if value in {"/", "/posts/new", "/draft"} else "/"
 
@@ -171,6 +174,49 @@ def register_routes(app):
         flash("投稿を削除しました。" if cleaned else
               "投稿は削除しましたが、写真ファイルの削除に失敗しました。管理者による確認が必要です。")
         return redirect(url_for("index"), code=303)
+
+    def own_published_post(post_id):
+        post = Post.get_or_none((Post.id == post_id) & (Post.user == current_user.id) & (Post.status == "published"))
+        if not post:
+            abort(404)
+        return post
+
+    @app.get("/posts/<int:post_id>/edit")
+    @login_required
+    def post_edit(post_id):
+        post = own_published_post(post_id)
+        return render_template("post_edit.html", post=post, form=PostForm(data={
+            "location": post.location, "location_other": post.location_other or "", "caption": post.caption}))
+
+    @app.post("/posts/<int:post_id>/edit")
+    @login_required
+    def post_update(post_id):
+        from flask import jsonify
+        from services.posts import update_published_post
+        from services.images import InvalidImage, ImageTooLarge
+        from werkzeug.exceptions import HTTPException
+        own_published_post(post_id)
+        form = PostForm()
+        if not form.validate_on_submit():
+            return jsonify(error="入力内容を確認してください。", fields=form.errors), 422
+        try:
+            version = int(request.form.get("version", ""))
+            if version < 1: raise ValueError()
+        except ValueError:
+            return jsonify(error="編集画面を開き直してください。"), 422
+        try:
+            update_published_post(current_user.id, post_id, version, form)
+        except ImageTooLarge as error:
+            return jsonify(error=str(error)), 413
+        except InvalidImage as error:
+            return jsonify(error=str(error)), 422
+        except HTTPException as error:
+            return jsonify(error=error.description), error.code
+        except (DatabaseError, OSError):
+            current_app.logger.exception("Could not update published post")
+            return jsonify(error="保存できませんでした。入力内容を残したまま、もう一度お試しください。"), 500
+        flash("投稿を更新しました。")
+        return jsonify(redirect=url_for("index"))
 
     @app.post("/words/draw")
     @login_required

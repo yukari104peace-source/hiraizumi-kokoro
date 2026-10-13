@@ -1,7 +1,7 @@
 """CSV validation and atomic import; no network access is performed."""
 import csv
 from urllib.parse import urlsplit
-from models import Word, database, utcnow
+from models import Word, WordDrawState, database, utcnow
 
 COLUMNS = ("word_code", "phrase", "reading", "explanation", "suggested_caption", "source_label", "reference_name", "reference_url", "is_active")
 LIMITS = {"phrase": 100, "reading": 150, "suggested_caption": 300, "source_label": 200, "reference_name": 200}
@@ -64,11 +64,37 @@ def draw_words(user_id, previous=None):
             excluded = payload["words"]
         except (BadData, ValueError, KeyError, TypeError):
             raise UnprocessableEntity("抽選の有効期限が切れました。ページを開き直してください。")
-    choices = list(Word.select().where(Word.is_active & ~Word.id.in_(excluded)))
-    if len(choices) < 2:
-        raise ServiceUnavailable("現在ことばを引けません。抽選対象の言葉が不足しています。")
-    chosen = SystemRandom().sample(choices, 2)
-    token = serializer.dumps({"user": user_id, "words": [w.id for w in chosen]})
+    import json
+    rng = SystemRandom()
+    with database.atomic("IMMEDIATE"):
+        active = {w.id: w for w in Word.select().where(Word.is_active)}
+        if len(active) < 4:
+            raise ServiceUnavailable("現在ことばを引けません。抽選対象の言葉は4件以上必要です。")
+        state, _ = WordDrawState.get_or_create(user=user_id)
+        seen = set(json.loads(state.seen_ids)) & active.keys()
+        last = set(json.loads(state.last_ids))
+        chosen_ids = []
+        for _ in range(2):
+            remaining = set(active) - seen
+            if not remaining:
+                seen = set()
+                state.cycle += 1
+                remaining = set(active)
+            # At a cycle boundary, avoid the previous pair and this pair's first word.
+            pool = remaining - last - set(chosen_ids)
+            if not pool:
+                pool = remaining - set(chosen_ids)
+            preferred = pool - set(excluded)
+            if preferred:
+                pool = preferred
+            selected = rng.choice(sorted(pool))
+            chosen_ids.append(selected)
+            seen.add(selected)
+        state.seen_ids = json.dumps(sorted(seen))
+        state.last_ids = json.dumps(chosen_ids)
+        state.save()
+        chosen = [active[word_id] for word_id in chosen_ids]
+        token = serializer.dumps({"user": user_id, "words": chosen_ids})
     return chosen, token
 
 
