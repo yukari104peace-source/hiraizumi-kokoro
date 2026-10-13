@@ -6,7 +6,8 @@
 :root{--round:"Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif;--pink:#f3bfcf}
 .site-header{background:linear-gradient(90deg,rgba(46,91,19,.04),rgba(36,80,19,.24) 50%,rgba(46,91,19,.04)),url('../images/spring-header.png') center center/cover no-repeat}
 .site-header:before,.site-header:after{display:none}
-.brand a{font-weight:400;text-shadow:0 2px 5px #406324}
+.brand a{display:block;width:min(100%,720px);line-height:0}
+.brand .brand-logo{display:block;width:100%;height:auto;filter:drop-shadow(0 2px 3px #294a1c55)}
 .tagline{font-weight:400;text-shadow:0 1px 4px #294a1c}
 .account-nav{background:#386122c9;border-radius:24px;padding:4px 18px;width:fit-content;margin-left:auto}
 h1,h2,.word-phrase,#word-options label{font-family:var(--round);font-weight:900;letter-spacing:.04em}
@@ -14,7 +15,7 @@ h1,h2,.word-phrase,#word-options label{font-family:var(--round);font-weight:900;
 .auth-card{position:relative;background:linear-gradient(145deg,#fffefa,#fffaf7);border-color:#f4b8c8}
 .auth-card:before,.auth-card:after{content:"";position:absolute;top:65px;width:22%;height:28px;border-top:1px solid #efa6be;border-radius:50%;pointer-events:none}
 .auth-card:before{left:12%;transform:rotate(8deg)}.auth-card:after{right:12%;transform:rotate(-8deg)}
-.auth-lotus{width:78px;filter:drop-shadow(0 3px 5px #f8d5df)}
+.auth-lotus{width:96px;height:auto;filter:drop-shadow(0 3px 5px #f8d5df)}
 .auth-card label,.auth-card input[type=submit],.button{font-family:var(--round);font-weight:700}
 .button:not(.secondary),input[type=submit],.actions button:not(.danger){background:linear-gradient(120deg,#578a29,#417729);border-color:#57812f}
 .auth-card input[type=submit]{font-size:1.25rem}

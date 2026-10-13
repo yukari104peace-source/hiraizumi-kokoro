@@ -6,7 +6,7 @@
 <body><a class="skip-link" href="#main">本文へ移動</a>
 <header class="site-header"><div class="header-inner">
 <nav class="account-nav" aria-label="アカウント"><a href="{{ url_for('index') }}">写真一覧</a>{% if current_user.is_authenticated %}<span>{{ current_user.username }} さん</span><form method="post" action="{{ url_for('logout_submit') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button>ログアウト</button></form>{% else %}<a href="{{ url_for('register_form') }}">ユーザー登録</a><a href="{{ url_for('login_form') }}">ログイン</a>{% endif %}</nav>
-<div class="brand"><a href="{{ url_for('index') }}">平泉の細道</a><img src="{{ url_for('static', filename='images/lotus.svg') }}" alt="" width="80" height="74"></div>
+<div class="brand"><a href="{{ url_for('index') }}"><img class="brand-logo" src="{{ url_for('static', filename='images/hiraizumi-logo-medium-lotus.png') }}" alt="平泉の細道" width="2171" height="724" fetchpriority="high"></a></div>
 <p class="tagline">〜一枚の写真から、千年のことばを〜</p></div></header>
 <main id="main">{% for message in get_flashed_messages() %}<p class="notice" role="status">{{ message }}</p>{% endfor %}{% block content %}{% endblock %}</main>
 <footer class="site-footer">一枚の写真に、心をそっと添えて。</footer>
