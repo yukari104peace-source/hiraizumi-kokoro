@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<h1>ユーザー登録</h1><p>ユーザー名は投稿者名として公開されます。ニックネームで登録できます。</p>{% include "_auth_form.html" %}<p><a href="{{ url_for('login_form', next=next_url) }}">登録済みの方はログイン</a></p>{% endblock %}
