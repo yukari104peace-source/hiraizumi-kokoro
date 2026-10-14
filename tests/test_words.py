@@ -127,3 +127,36 @@ def test_concurrent_draws_are_serialized(app):
     with ThreadPoolExecutor(max_workers=2) as executor:
         results=list(executor.map(lambda _:draw(),range(2)))
     assert len(set(results[0]+results[1]))==4
+
+
+def test_updated_catalog_preserves_history_and_draws_all_unique_words(app):
+    """Expanding the real catalog keeps past draws and reaches each new word."""
+    import json
+    from pathlib import Path
+    from models import User, WordDrawState
+    from services.words import read_words, import_words, draw_words
+
+    rows = read_words(Path(__file__).resolve().parents[1] / 'data/words.csv')
+    assert len(rows) == len({row['phrase'] for row in rows}) == 70
+    with app.app_context():
+        import_words([row for row in rows if row['word_code'] <= 30])
+        user = User.create(username='catalog-check', password_hash='test')
+        first, token = draw_words(user.id)
+        seen = {word.id for word in first}
+        before = WordDrawState.get_by_id(user.id).seen_ids
+        original_ids = {word.word_code: word.id for word in Word.select()}
+        import_words(rows)
+        import_words(rows)
+        assert Word.select().where(Word.is_active).count() == 70
+        assert WordDrawState.get_by_id(user.id).seen_ids == before
+        assert all(Word.get(Word.word_code == code).id == pk for code, pk in original_ids.items())
+        for _ in range(34):
+            words, token = draw_words(user.id, token)
+            pair = {word.id for word in words}
+            assert len(pair) == 2 and not pair & seen
+            seen.update(pair)
+        assert seen == {word.id for word in Word.select().where(Word.is_active)}
+        assert len(json.loads(WordDrawState.get_by_id(user.id).seen_ids)) == 70
+        words, _ = draw_words(user.id, token)
+        assert len({word.id for word in words}) == 2
+        assert WordDrawState.get_by_id(user.id).cycle == 2

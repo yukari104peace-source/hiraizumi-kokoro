@@ -206,7 +206,17 @@ def register_routes(app):
         except ValueError:
             return jsonify(error="編集画面を開き直してください。"), 422
         try:
-            update_published_post(current_user.id, post_id, version, form)
+            selected = request.form.get("edit_word_id", "")
+            if selected:
+                try:
+                    selected = int(selected)
+                except ValueError:
+                    return jsonify(error="表示された言葉から1件選んでください。"), 422
+                if not request.form.get("edit_draw_token"):
+                    return jsonify(error="ことばを引き直してから選んでください。"), 422
+            update_published_post(current_user.id, post_id, version, form,
+                selected=selected if selected != "" else None,
+                draw_token=request.form.get("edit_draw_token"))
         except ImageTooLarge as error:
             return jsonify(error=str(error)), 413
         except InvalidImage as error:

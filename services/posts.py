@@ -113,7 +113,7 @@ def delete_published_post(user_id, post_id):
     return True
 
 
-def update_published_post(user_id, post_id, version, form):
+def update_published_post(user_id, post_id, version, form, selected=None, draw_token=None):
     new_image = None
     committed = False
     old_image = None
@@ -129,9 +129,19 @@ def update_published_post(user_id, post_id, version, form):
                 raise NotFound()
             if post.version != version:
                 raise Conflict('別の操作で更新されています。入力内容を控えてから編集画面を開き直してください。')
+            candidates = None
+            if selected is not None:
+                from services.words import verify_draw
+                candidates = verify_draw(user_id, draw_token)
+                if selected not in candidates:
+                    raise UnprocessableEntity('表示された言葉から1件選んでください。')
+                if not Word.select().where((Word.id == selected) & Word.is_active).exists():
+                    raise UnprocessableEntity('この言葉は抽選停止になりました。もう一度引いてください。')
             values = dict(location=form.location.data,
                 location_other=(form.location_other.data or None) if form.location.data == 'other' else None,
                 caption=form.caption.data, updated_at=utcnow(), version=Post.version + 1)
+            if candidates:
+                values.update(word=selected, candidate_word_1=candidates[0], candidate_word_2=candidates[1])
             if new_image:
                 old_image = post.image_key
                 values['image_key'] = new_image

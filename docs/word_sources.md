@@ -1,6 +1,10 @@
-# 言葉の確認先（2026-10-13）
+# 言葉の確認先（2026-10-14更新）
 
-元のExcelは変更せず、30件の言葉・読み方・解説・文章案をCSVへ転記。解説は原文引用ではなくExcelの説明文。
+元のExcel `docs/images/hotokenokotoba_統一.xlsx` の80行を、同じ言葉をまとめて70種類として収録。既存30種類は番号・内容・確認先を維持し、新規40種類の読み方・解説・文章案・出典表示をExcelから転記。Excel自体は変更していない。解説と文章案は参照ページからの引用ではない。
+
+新しい行にはURLがないため、関連する寺院・宗派の解説や辞典へのリンクを補った。Excelの「確認元」は出典表示として残し、リンク先の名称は別の確認先名称に保存する。これらのリンクは用語を調べるための参考であり、Excelの文章全体の出典を保証するものではない。
+
+固定番号はExcelの番号を維持するため欠番がある。統合した番号（後の行 → 採用した行）：31→22（慈悲）、32→21（縁起）、34→10（布施）、35→12（忍辱）、36→13（精進）、37→14（禅定）、38→15（智慧）、39→11（持戒）、44→20（正語）、52→23（随喜）。
 
 20番の確認先は、今回確認できた天台宗公式の「四諦・八正道」に変更（Excel表記は天台寺）。22番は大谷大学の解説へリンク。その他、出典名と確認先名を分離している。
 
@@ -36,3 +40,48 @@
 |28|中道|[日蓮宗「じつは身近な仏教用語」](https://www.nichiren.or.jp/glossary/id137/)|
 |29|無財の七施|[天台宗の解説より](https://www.tendai.or.jp/houwashuu/kiji.php?nid=105)|
 |30|眼施|[天台宗の解説より](https://www.tendai.or.jp/houwashuu/kiji.php?nid=105)|
+
+## 追加40種類の確認先
+
+|番号|言葉|確認先|
+|---|---|---|
+|33|不殺生|[新纂浄土宗大辞典「不殺生」](https://jodoshuzensho.jp/daijiten/index.php/%E4%B8%8D%E6%AE%BA%E7%94%9F)|
+|40|四苦八苦|[新纂浄土宗大辞典「四苦八苦」](https://jodoshuzensho.jp/daijiten/index.php/%E5%9B%9B%E8%8B%A6%E5%85%AB%E8%8B%A6)|
+|41|苦集滅道|[天台宗「四諦・八正道」](https://www.tendai.or.jp/houwashuu/kiji.php?nid=106)|
+|42|八正道|[天台宗「四諦・八正道」](https://www.tendai.or.jp/houwashuu/kiji.php?nid=106)|
+|43|正見|[天台宗「四諦・八正道」](https://www.tendai.or.jp/houwashuu/kiji.php?nid=106)|
+|45|正命|[天台宗「四諦・八正道」](https://www.tendai.or.jp/houwashuu/kiji.php?nid=106)|
+|46|正念|[天台宗「四諦・八正道」](https://www.tendai.or.jp/houwashuu/kiji.php?nid=106)|
+|47|正定|[天台宗「四諦・八正道」](https://www.tendai.or.jp/houwashuu/kiji.php?nid=106)|
+|48|無我|[新纂浄土宗大辞典「無我」](https://jodoshuzensho.jp/daijiten/index.php/%E7%84%A1%E6%88%91)|
+|49|涅槃寂静|[新纂浄土宗大辞典「涅槃寂静」](https://jodoshuzensho.jp/daijiten/index.php/%E6%B6%85%E6%A7%83%E5%AF%82%E9%9D%99)|
+|50|慈心|[日本テーラワーダ仏教協会「慈経」](https://j-theravada.com/world/sutta/sutta-06/)|
+|51|喜捨|[新纂浄土宗大辞典「喜捨」](https://jodoshuzensho.jp/daijiten/index.php/%E5%96%9C%E6%8D%A8)|
+|53|回向|[浄土宗「総回向偈」](https://jodo.or.jp/newspaper/special/6305/)|
+|54|菩提心|[浄土宗「総回向偈」](https://jodo.or.jp/newspaper/special/6305/)|
+|55|自利利他|[天台宗「忘己利他」](https://www.tendai.or.jp/houwashuu/kiji.php?nid=26)|
+|56|不二|[新纂浄土宗大辞典「不二」](https://jodoshuzensho.jp/daijiten/index.php/%E4%B8%8D%E4%BA%8C)|
+|57|空|[新纂浄土宗大辞典「空」](https://jodoshuzensho.jp/daijiten/index.php/%E7%A9%BA)|
+|58|色即是空|[新纂浄土宗大辞典「般若心経」](https://jodoshuzensho.jp/daijiten/index.php/%E8%88%AC%E8%8B%A5%E5%BF%83%E7%B5%8C)|
+|59|空即是色|[新纂浄土宗大辞典「般若心経」](https://jodoshuzensho.jp/daijiten/index.php/%E8%88%AC%E8%8B%A5%E5%BF%83%E7%B5%8C)|
+|60|心如工画師|[日蓮宗現代宗教研究所「開経（表面）」](https://genshu.nichiren.or.jp/documents/post-2080/id-2080/)|
+|61|浄土|[中尊寺「中尊寺について」](https://www.chusonji.or.jp/know/)|
+|62|極楽浄土|[浄土宗「はじめての浄土宗」](https://jodo.or.jp/jodoshu/first-time/)|
+|63|阿弥陀如来|[浄土宗「はじめての浄土宗」](https://jodo.or.jp/jodoshu/first-time/)|
+|64|本願|[浄土宗「四誓偈」](https://jodo.or.jp/newspaper/special/5422/)|
+|65|四十八願|[浄土宗「四誓偈」](https://jodo.or.jp/newspaper/special/5422/)|
+|66|念仏|[浄土宗「はじめての浄土宗」](https://jodo.or.jp/jodoshu/first-time/)|
+|67|南無阿弥陀仏|[浄土宗「はじめての浄土宗」](https://jodo.or.jp/jodoshu/first-time/)|
+|68|称名念仏|[浄土宗「はじめての浄土宗」](https://jodo.or.jp/jodoshu/first-time/)|
+|69|専修念仏|[新纂浄土宗大辞典「専修念仏」](https://jodoshuzensho.jp/daijiten/index.php/%E5%B0%82%E4%BF%AE%E5%BF%B5%E4%BB%8F)|
+|70|他力本願|[新纂浄土宗大辞典「他力本願」](https://jodoshuzensho.jp/daijiten/index.php/%E4%BB%96%E5%8A%9B%E6%9C%AC%E9%A1%98)|
+|71|往生|[浄土宗「はじめての浄土宗」](https://jodo.or.jp/jodoshu/first-time/)|
+|72|来迎|[新纂浄土宗大辞典「来迎」](https://jodoshuzensho.jp/daijiten/index.php/%E6%9D%A5%E8%BF%8E)|
+|73|観想念仏|[新纂浄土宗大辞典「観想念仏」](https://jodoshuzensho.jp/daijiten/index.php/%E8%A6%B3%E6%83%B3%E5%BF%B5%E4%BB%8F)|
+|74|浄土庭園|[毛越寺「境内のご案内」](https://motsuji.or.jp/keidai/index.html)|
+|75|平等|[中尊寺「中尊寺について」](https://www.chusonji.or.jp/know/)|
+|76|怨親平等|[中尊寺「中尊寺について」](https://www.chusonji.or.jp/know/)|
+|77|常行三昧|[毛越寺「平泉の世紀」](https://www.motsuji.or.jp/about/seiki.html)|
+|78|止観|[天台寺門宗「天台寺門宗の教え」](https://www.tendai-jimon.jp/docrine/index.html)|
+|79|円融|[天台寺門宗「天台寺門宗の教え」](https://www.tendai-jimon.jp/docrine/index.html)|
+|80|法華一乗|[天台宗「教え」](https://www.tendai.or.jp/oshie/)|
