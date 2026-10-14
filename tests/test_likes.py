@@ -5,6 +5,23 @@ from models import Like, Post
 from test_posts import posting, picture
 
 
+def test_ajax_like_updates_without_redirect(app, client, posting):
+    data, _ = posting
+    post_id = client.post('/posts', data={**data, 'photo': picture()}).json['id']
+    url = f'/posts/{post_id}/like'
+    headers = {'X-Requested-With': 'XMLHttpRequest'}
+    for action, liked, count in [('like', True, 1), ('like', True, 1), ('unlike', False, 0)]:
+        response = client.post(url, data={'csrf_token': data['csrf_token'], 'action': action}, headers=headers)
+        assert response.status_code == 200
+        assert response.json == {'liked': liked, 'count': count}
+        assert 'Location' not in response.headers
+    response = client.post(url, data={'action': 'like'}, headers=headers)
+    assert response.status_code == 400 and response.json['error']
+    anonymous = app.test_client()
+    response = anonymous.post(url, data={'csrf_token': csrf_token(anonymous), 'action': 'like'}, headers=headers)
+    assert response.status_code == 401 and response.json['error']
+
+
 def test_like_retry_unlike_and_persistence(app, client, posting):
     data, _ = posting
     post_id = client.post('/posts', data={**data, 'photo': picture()}).json['id']
@@ -74,5 +91,8 @@ def test_like_database_failure(app, client, posting, monkeypatch):
     response = client.post(f'/posts/{post_id}/like', data={'csrf_token': data['csrf_token'], 'action': 'like'})
     assert response.status_code == 500
     assert 'いいねを保存できませんでした' in response.text
+    response = client.post(f'/posts/{post_id}/like', data={'csrf_token': data['csrf_token'], 'action': 'like'},
+                           headers={'X-Requested-With': 'XMLHttpRequest'})
+    assert response.status_code == 500 and response.json['error']
     with app.app_context():
         assert Like.select().count() == 0

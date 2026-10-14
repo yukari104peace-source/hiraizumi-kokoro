@@ -10,4 +10,4 @@
 <p class="tagline">〜一枚の写真から、千年のことばを〜</p></div></header>
 <main id="main">{% for message in get_flashed_messages() %}<p class="notice" role="status">{{ message }}</p>{% endfor %}{% block content %}{% endblock %}</main>
 <footer class="site-footer">一枚の写真に、心をそっと添えて。</footer>
-<script src="{{ url_for('static', filename='js/post_form.js') }}" defer></script><script src="{{ url_for('static', filename='js/comments.js') }}" defer></script></body></html>
+<script src="{{ url_for('static', filename='js/post_form.js') }}" defer></script><script src="{{ url_for('static', filename='js/comments.js') }}" defer></script><script src="{{ url_for('static', filename='js/likes.js') }}" defer></script></body></html>

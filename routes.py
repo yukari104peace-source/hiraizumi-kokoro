@@ -117,6 +117,8 @@ def register_routes(app):
     @app.post("/posts/<int:post_id>/like")
     @login_required
     def post_like(post_id):
+        from flask import jsonify
+        ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
         action = request.form.get("action")
         try:
             page = int(request.form.get("page", "1"))
@@ -132,10 +134,15 @@ def register_routes(app):
                     Like.get_or_create(user=current_user.id, post=post_id)
                 else:
                     Like.delete().where((Like.user == current_user.id) & (Like.post == post_id)).execute()
+                count = Like.select().where(Like.post == post_id).count()
                 total = Post.select().where(Post.status == "published").count()
         except DatabaseError:
             current_app.logger.exception("Could not update like")
+            if ajax:
+                return jsonify(error="いいねを保存できませんでした。もう一度お試しください。"), 500
             return render_template("error.html", message="いいねを保存できませんでした。一覧に戻ってもう一度お試しください。"), 500
+        if ajax:
+            return jsonify(liked=action == "like", count=count)
         page = min(page, max(1, (total + 9) // 10))
         return redirect(url_for("index", page=page, _anchor=f"post-{post_id}"), code=303)
 
