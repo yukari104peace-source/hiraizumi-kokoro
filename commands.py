@@ -6,6 +6,19 @@ from models import Word
 
 
 def register_commands(app):
+    @app.cli.command("remove-comment")
+    @click.argument("comment_id", type=int)
+    @with_appcontext
+    def remove_comment(comment_id):
+        """Server operator moderation; preserve replies and remove the body."""
+        from models import Comment
+        comment = Comment.get_or_none(Comment.id == comment_id)
+        if not comment:
+            raise click.ClickException("コメントが見つかりません。")
+        click.confirm(f"コメント {comment_id}（投稿 {comment.post_id}）の本文を削除しますか？", abort=True)
+        Comment.update(body="削除済み", is_deleted=True).where(Comment.id == comment_id).execute()
+        click.echo("本文を削除しました。返信は残しています。")
+
     @app.cli.command("init-db")
     @with_appcontext
     def init_db():

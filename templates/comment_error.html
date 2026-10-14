@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block content %}
+<h1>コメントの確認</h1><p class="error" role="alert">{{ message }}</p>
+<form method="post" action="{{ url_for('comment_create', post_id=post_id) }}" class="comment-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="page" value="{{ page }}">
+{% if parent_id %}<input type="hidden" name="parent_id" value="{{ parent_id }}">{% endif %}
+<label for="retry-comment">コメント・返信（200文字まで）</label>
+<textarea id="retry-comment" name="body" rows="4" maxlength="200" required>{{ body }}</textarea>
+<button type="submit">送信する</button>
+</form><p><a href="{{ url_for('index') }}">写真一覧へ戻る</a></p>
+{% endblock %}

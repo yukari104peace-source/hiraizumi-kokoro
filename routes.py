@@ -1,9 +1,9 @@
 from flask import abort, current_app, flash, redirect, render_template, request, session, url_for, send_from_directory
 from flask_login import current_user, login_user, logout_user, login_required
-from peewee import IntegrityError, DatabaseError
+from peewee import IntegrityError, DatabaseError, fn
 from extensions import login_manager
 from forms import LoginForm, RegisterForm, PostForm
-from models import Post, User, Word
+from models import Post, User, Word, Like, Comment, database
 
 
 def safe_next(value):
@@ -43,7 +43,101 @@ def register_routes(app):
         if page > max(1, (total + 9) // 10):
             abort(404)
         has_draft = current_user.is_authenticated and Post.select().where((Post.user == current_user.id) & (Post.status == "draft")).exists()
-        return render_template("index.html", has_draft=has_draft, posts=list(query.paginate(page, 10)), page=page, has_next=page * 10 < total)
+        posts = list(query.paginate(page, 10))
+        ids = [post.id for post in posts]
+        counts = dict(Like.select(Like.post, fn.COUNT(Like.id)).where(Like.post.in_(ids)).group_by(Like.post).tuples()) if ids else {}
+        liked = {row.post_id for row in Like.select(Like.post).where(
+            (Like.user == current_user.id) & Like.post.in_(ids))} if ids and current_user.is_authenticated else set()
+        comments = {post_id: [] for post_id in ids}
+        replies = {}
+        if ids:
+            for comment in Comment.select(Comment, User).join(User).where(Comment.post.in_(ids)).order_by(Comment.created_at, Comment.id):
+                if comment.parent_id:
+                    replies.setdefault(comment.parent_id, []).append(comment)
+                else:
+                    comments[comment.post_id].append(comment)
+        return render_template("index.html", has_draft=has_draft, posts=posts, page=page,
+                               has_next=page * 10 < total, like_counts=counts, liked_ids=liked,
+                               comments=comments, replies=replies)
+
+    def comment_return(post_id):
+        total = Post.select().where(Post.status == "published").count()
+        try:
+            page = max(1, int(request.form.get("page", "1")))
+        except ValueError:
+            page = 1
+        return redirect(url_for("index", page=min(page, max(1, (total + 9) // 10)),
+                                _anchor=f"comments-{post_id}"), code=303)
+
+    @app.post("/posts/<int:post_id>/comments")
+    @login_required
+    def comment_create(post_id):
+        body = request.form.get("body", "").strip()
+        parent_id = request.form.get("parent_id", "")
+        try:
+            parent_id = int(parent_id) if parent_id else None
+        except ValueError:
+            abort(400)
+        try:
+            with database.atomic("IMMEDIATE"):
+                if not Post.select().where((Post.id == post_id) & (Post.status == "published")).exists():
+                    abort(404)
+                if not body or len(body) > 200:
+                    return render_template("comment_error.html", body=body, post_id=post_id,
+                                           parent_id=parent_id, page=request.form.get("page", "1"),
+                                           message="コメントは1〜200文字で入力してください。"), 422
+                if parent_id is not None:
+                    parent = Comment.get_or_none((Comment.id == parent_id) & (Comment.post == post_id))
+                    if not parent or parent.parent_id is not None or parent.is_deleted:
+                        abort(404)
+                Comment.create(user=current_user.id, post=post_id, parent=parent_id, body=body)
+        except DatabaseError:
+            current_app.logger.exception("Could not save comment")
+            return render_template("comment_error.html", body=body, post_id=post_id,
+                                   parent_id=parent_id, page=request.form.get("page", "1"),
+                                   message="保存できませんでした。もう一度お試しください。"), 500
+        return comment_return(post_id)
+
+    @app.post("/comments/<int:comment_id>/delete")
+    @login_required
+    def comment_delete(comment_id):
+        try:
+            with database.atomic("IMMEDIATE"):
+                comment = Comment.select(Comment).join(Post).where(
+                    (Comment.id == comment_id) & (Comment.user == current_user.id) &
+                    (Post.status == "published")).first()
+                if not comment:
+                    abort(404)
+                Comment.update(body="削除済み", is_deleted=True).where(Comment.id == comment.id).execute()
+        except DatabaseError:
+            current_app.logger.exception("Could not delete comment")
+            return render_template("error.html", message="コメントを削除できませんでした。もう一度お試しください。"), 500
+        return comment_return(comment.post_id)
+
+    @app.post("/posts/<int:post_id>/like")
+    @login_required
+    def post_like(post_id):
+        action = request.form.get("action")
+        try:
+            page = int(request.form.get("page", "1"))
+        except ValueError:
+            abort(400)
+        if action not in {"like", "unlike"} or page < 1:
+            abort(400)
+        try:
+            with database.atomic("IMMEDIATE"):
+                if not Post.select().where((Post.id == post_id) & (Post.status == "published")).exists():
+                    abort(404)
+                if action == "like":
+                    Like.get_or_create(user=current_user.id, post=post_id)
+                else:
+                    Like.delete().where((Like.user == current_user.id) & (Like.post == post_id)).execute()
+                total = Post.select().where(Post.status == "published").count()
+        except DatabaseError:
+            current_app.logger.exception("Could not update like")
+            return render_template("error.html", message="いいねを保存できませんでした。一覧に戻ってもう一度お試しください。"), 500
+        page = min(page, max(1, (total + 9) // 10))
+        return redirect(url_for("index", page=page, _anchor=f"post-{post_id}"), code=303)
 
     @app.get("/register")
     def register_form():

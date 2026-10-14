@@ -111,5 +111,28 @@ class WordDrawState(BaseModel):
         table_name = "word_draw_states"
 
 
+class Like(BaseModel):
+    user = ForeignKeyField(User, backref="likes", on_delete="CASCADE")
+    post = ForeignKeyField(Post, backref="likes", on_delete="CASCADE")
+    created_at = DateTimeField(default=utcnow)
+
+    class Meta:
+        table_name = "likes"
+        indexes = ((("user", "post"), True),)
+
+
+class Comment(BaseModel):
+    user = ForeignKeyField(User, backref="comments", on_delete="RESTRICT")
+    post = ForeignKeyField(Post, backref="comments", on_delete="CASCADE")
+    parent = ForeignKeyField("self", null=True, backref="replies", on_delete="CASCADE")
+    body = CharField(max_length=200, constraints=text_checks("body", 200))
+    is_deleted = BooleanField(default=False)
+    created_at = DateTimeField(default=utcnow)
+
+    class Meta:
+        table_name = "comments"
+        indexes = ((("post", "created_at", "id"), False),)
+
+
 def create_tables():
-    database.create_tables([User, Word, Post, WordDrawState])
+    database.create_tables([User, Word, Post, WordDrawState, Like, Comment])

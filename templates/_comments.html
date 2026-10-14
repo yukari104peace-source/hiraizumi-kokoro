@@ -1,0 +1,38 @@
+{% macro comment_item(comment, reply=false) %}
+<div class="comment{% if reply %} comment-reply{% endif %}" id="comment-{{ comment.id }}">
+{% if comment.is_deleted %}<p class="comment-deleted">このコメントは削除されました。</p>
+{% else %}
+<p class="comment-author">{{ comment.user.username }} <time datetime="{{ comment.created_at.isoformat() }}Z">{{ comment.created_at.strftime('%Y-%m-%d') }} UTC</time></p>
+<p class="comment-body">{{ comment.body }}</p>
+{% if current_user.is_authenticated and current_user.id == comment.user_id %}
+<form method="post" action="{{ url_for('comment_delete', comment_id=comment.id) }}" class="comment-delete-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="page" value="{{ page }}">
+<button type="submit" class="danger">コメントを削除</button>
+</form>{% endif %}
+{% if current_user.is_authenticated and not reply %}
+<details class="reply-form"><summary>返信する</summary>
+{{ comment_form(comment.id) }}
+</details>{% endif %}
+{% endif %}
+</div>
+{% endmacro %}
+{% macro comment_form(parent_id=none) %}
+<form method="post" action="{{ url_for('comment_create', post_id=post.id) }}" class="comment-form">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="page" value="{{ page }}">
+{% if parent_id %}<input type="hidden" name="parent_id" value="{{ parent_id }}">{% endif %}
+<label for="comment-input-{{ post.id }}-{{ parent_id or 'new' }}">{{ '返信' if parent_id else 'コメント' }}（200文字まで）</label>
+<textarea id="comment-input-{{ post.id }}-{{ parent_id or 'new' }}" name="body" rows="2" maxlength="200" required></textarea>
+<button type="submit">{{ '返信を送信' if parent_id else 'コメントを送信' }}</button>
+</form>
+{% endmacro %}
+<details class="post-comments" id="comments-{{ post.id }}">
+<summary>コメント・返信</summary>
+{% for comment in comments.get(post.id, []) %}
+<div class="comment-thread">
+{{ comment_item(comment) }}
+{% for reply in replies.get(comment.id, []) %}{{ comment_item(reply, true) }}{% endfor %}
+</div>
+{% else %}<p>まだコメントはありません。</p>{% endfor %}
+{% if current_user.is_authenticated %}{{ comment_form() }}
+{% else %}<p><a href="{{ url_for('login_form', next='/') }}">ログインしてコメントする</a></p>{% endif %}
+</details>

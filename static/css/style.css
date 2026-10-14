@@ -33,3 +33,36 @@ h1,h2,.word-phrase,#word-options label{font-family:var(--round);font-weight:900;
 
 #edit-word-options article{padding:20px;border:1px solid var(--pink);border-radius:12px;margin:20px 0}
 #edit-word-options label{font-weight:700;font-size:1.4rem}
+
+/* Double pink frame with inset corners, based on docs/images/図1.png.
+   Nine-slice scaling keeps the corner shape at every card size. */
+.post-card,.auth-card,#post-form,#edit-post-form{
+  border:22px solid transparent;
+  border-image:url('../images/decorative-frame.svg') 24 / 22px / 0 stretch;
+  border-radius:24px;
+}
+.auth-card:before,.auth-card:after{display:none}
+
+/* Likes share the soft pink palette of the decorative frame. */
+.like-button{display:inline-block;padding:8px 14px;min-height:44px;border:1px solid #e6adc2;border-radius:20px;background:#fffafa;color:#86445d;text-decoration:none;font-size:.9rem}
+.like-button.is-liked{background:#fbe9f0;border-color:#d99ab2;color:#803650}
+.like-button:hover{background:#f9e5ed}
+
+/* Separate rows keep likes centered regardless of author or action widths. */
+.post-footer{display:flex;flex-direction:column;align-items:stretch;row-gap:8px}
+.post-details-row{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px 18px}
+.post-details-row>.post-meta{flex:1 1 160px;min-width:0}
+.post-likes{display:flex;justify-content:center;min-width:0}
+.post-owner-actions{display:flex;margin-left:auto;max-width:100%;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:12px 18px;min-width:0}
+
+.post-comments{min-width:0;border-top:1px solid #efd3de;padding-top:2px}
+.post-comments summary,.reply-form summary{cursor:pointer;color:#86445d;min-height:44px;padding:8px 0}
+.comment-thread{margin:12px 0 20px}
+.comment{padding:12px;background:#fff9f7;border-radius:10px;min-width:0}
+.comment-reply{margin:8px 0 0 20px;border-left:2px solid #efd3de}
+.comment-author{font-weight:700}.comment-author time{font-size:.75rem;font-weight:400;color:#59634e}
+.comment-body{white-space:pre-wrap;overflow-wrap:anywhere}
+.comment-deleted{color:#59634e;font-size:.85rem}
+.comment-form{padding-top:12px}.comment-form button{margin-top:10px}
+.comment-delete-form{display:flex;justify-content:flex-end}.comment-delete-form button{font-size:.8rem}
+@media(max-width:600px){.comment-reply{margin-left:12px}}
