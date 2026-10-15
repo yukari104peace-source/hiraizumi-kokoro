@@ -2,12 +2,12 @@
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>平泉の細道</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='20261015-resume-button-row-23') }}"></head>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='20261015-tagline-mark-gap-26') }}"></head>
 <body><a class="skip-link" href="#main">本文へ移動</a>
 <header class="site-header"><div class="header-inner">
 <nav class="account-nav" aria-label="アカウント"><a href="{{ url_for('index') }}">写真一覧</a>{% if current_user.is_authenticated %}<span>{{ current_user.username }} さん</span><form method="post" action="{{ url_for('logout_submit') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button>ログアウト</button></form>{% else %}<a href="{{ url_for('register_form') }}">ユーザー登録</a><a href="{{ url_for('login_form') }}">ログイン</a>{% endif %}</nav>
 <div class="brand"><a href="{{ url_for('index') }}"><img class="brand-logo" src="{{ url_for('static', filename='images/hiraizumi-logo-medium-lotus.png') }}" alt="平泉の細道" width="2171" height="724" fetchpriority="high"></a></div>
-<p class="tagline">〜一枚の写真から、千年のことばを〜</p></div></header>
+<p class="tagline"><span class="tagline-mark">〜</span>一枚の写真から、千年のことばを<span class="tagline-mark">〜</span></p></div></header>
 <main id="main">{% for message in get_flashed_messages() %}<p class="notice" role="status">{{ message }}</p>{% endfor %}{% block content %}{% endblock %}</main>
 <footer class="site-footer">一枚の写真に、心をそっと添えて。</footer>
 <script src="{{ url_for('static', filename='js/post_form.js') }}" defer></script><script src="{{ url_for('static', filename='js/comments.js') }}" defer></script><script src="{{ url_for('static', filename='js/likes.js') }}" defer></script><script src="{{ url_for('static', filename='js/word_fit.js') }}" defer></script></body></html>

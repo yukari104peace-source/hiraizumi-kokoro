@@ -109,6 +109,7 @@ h1,h2,.word-phrase,#word-options label{font-family:var(--round);font-weight:900;
 @media(max-width:600px){.feed-actions{flex-wrap:nowrap}.feed-actions .new-post-button,.feed-actions .resume-draft-button{flex:1 1 0;width:auto;min-width:0;min-height:42px;padding:7px 6px;font-size:.85rem;white-space:nowrap}.feed-actions .new-post-button{letter-spacing:.03em}}
 
 .tagline{font-size:clamp(1.1rem,2.7vw,1.55rem)}
+.tagline-mark{display:inline-block;margin:0 .18em;color:#29472f;font-weight:700;text-shadow:0 1px 2px rgba(255,255,255,.7)}
 @media(max-width:600px){.tagline{font-size:1.02rem}}
 
 /* Compact vertical rhythm throughout the site. */
