@@ -14,11 +14,16 @@ if (form) {
   const preview = document.getElementById("photo-preview");
   let savedPreview = preview.getAttribute("src") || "";
   const status = document.getElementById("save-status");
+  function setSaveStatus(message = "", state = "") {
+    status.textContent = message;
+    status.dataset.state = state;
+    status.hidden = !message;
+  }
   for (const radio of form.querySelectorAll('input[name="word_id"]')) {
     if (radio.checked) suggestion = radio.dataset.suggestion;
     radio.addEventListener("change", () => {
       if (!caption.value || caption.value === suggestion || window.confirm("新しい文章案に置き換えますか？")) caption.value = radio.dataset.suggestion;
-      suggestion = radio.dataset.suggestion; reset.disabled = false; dirty = true;
+      suggestion = radio.dataset.suggestion; reset.disabled = false; dirty = true; setSaveStatus("変更はまだ保存されていません。", "unsaved");
     });
   }
   reset.disabled = !form.querySelector('input[name="word_id"]:checked');
@@ -37,7 +42,7 @@ if (form) {
     }
     return body;
   }
-  form.addEventListener("input", () => { dirty = true; status.textContent = "変更はまだ保存されていません。"; });
+  form.addEventListener("input", () => { dirty = true; setSaveStatus("変更はまだ保存されていません。", "unsaved"); });
   form.elements.photo.addEventListener("change", () => {
     if (previewURL) URL.revokeObjectURL(previewURL);
     const file = form.elements.photo.files[0];
@@ -58,7 +63,7 @@ if (form) {
     if (token.value) data.set("previous", token.value);
     try {
       const result = await send(draw.dataset.url, data);
-      token.value = result.token; offered = result.words; suggestion = ""; dirty = true; status.textContent = "変更はまだ保存されていません。";
+      token.value = result.token; offered = result.words; suggestion = ""; dirty = true; setSaveStatus("変更はまだ保存されていません。", "unsaved");
       const container = document.getElementById("word-options");
       container.replaceChildren();
       for (const word of offered) {
@@ -74,7 +79,7 @@ if (form) {
         a.className = "source"; a.target = "_blank"; a.rel = "noopener noreferrer"; card.append(a);
         radio.addEventListener("change", () => {
           if (!caption.value || caption.value === suggestion || window.confirm("新しい文章案に置き換えますか？ キャンセルすると入力した文章を残します。")) caption.value = word.suggested_caption;
-          suggestion = word.suggested_caption; reset.disabled = false; dirty = true;
+          suggestion = word.suggested_caption; reset.disabled = false; dirty = true; setSaveStatus("変更はまだ保存されていません。", "unsaved");
         });
         container.append(card);
       }
@@ -86,7 +91,7 @@ if (form) {
     if (busy) return;
     const url = event.currentTarget.dataset.url;
     const data = new FormData(form);
-    lock(true); error.textContent = ""; status.textContent = "";
+    lock(true); error.textContent = ""; setSaveStatus("保存しています…", "saving");
     try {
       const result = await send(url, data);
       form.elements.draft_id.value = result.id;
@@ -98,8 +103,8 @@ if (form) {
         form.elements.photo.value = "";
         if (previewURL) { URL.revokeObjectURL(previewURL); previewURL = null; }
       }
-      dirty = false; status.textContent = "下書きを保存しました。あとから続きを編集できます。";
-    } catch (e) { error.textContent = e.message; }
+      dirty = false; setSaveStatus("✓ 下書きを保存しました。あとから続きを編集できます。", "saved");
+    } catch (e) { setSaveStatus(); error.textContent = e.message; }
     finally { lock(false); }
   });
   document.getElementById("delete-draft").addEventListener("click", async event => {
@@ -108,14 +113,14 @@ if (form) {
     const url = event.currentTarget.dataset.url;
     const data = new FormData();
     for (const name of ["csrf_token", "draft_id", "version", "submission_key"]) data.set(name, form.elements[name].value);
-    lock(true); error.textContent = ""; status.textContent = "";
+    lock(true); error.textContent = ""; setSaveStatus();
     try {
       const result = await send(url, data);
       dirty = false; window.location.assign(result.redirect);
     } catch (e) { error.textContent = e.message; lock(false); }
   });
   reset.addEventListener("click", () => {
-    if (window.confirm("文章案に戻しますか？")) { caption.value = suggestion; dirty = true; status.textContent = "変更はまだ保存されていません。"; }
+    if (window.confirm("文章案に戻しますか？")) { caption.value = suggestion; dirty = true; setSaveStatus("変更はまだ保存されていません。", "unsaved"); }
   });
   form.addEventListener("submit", async event => {
     event.preventDefault(); if (busy) return;

@@ -16,7 +16,7 @@
 <div class="field">{{ form.caption.label }}{{ form.caption(rows=4, maxlength=300) }}<small>300文字以内。文章案は経典の引用ではなく、写真に添えるひとことです。</small></div>
 <button type="button" id="reset-caption" disabled>文章案に戻す</button>
 <p id="form-error" class="error" role="alert"></p>
-<p id="save-status" role="status"></p><p>下書きは自分だけが見られます。保存ボタンを押すまで変更は保存されません。</p><div class="actions"><button type="button" id="save-draft" data-url="{{ url_for('draft_save') }}">下書きを保存する</button><button type="submit">投稿する</button><a href="{{ url_for('index') }}">一覧に戻る</a></div>
-<p id="delete-draft-area" {% if not draft %}hidden{% endif %}><button type="button" id="delete-draft" class="danger" data-url="{{ url_for('draft_delete') }}">下書きを削除する</button></p>
+<p>下書きは自分だけが見られます。保存ボタンを押すまで変更は保存されません。</p><div class="actions draft-actions"><div class="draft-save-group"><button type="button" id="save-draft" class="draft-primary-button" data-url="{{ url_for('draft_save') }}">下書きを保存する</button><p id="save-status" role="status" aria-live="polite" aria-atomic="true" hidden></p></div><div class="draft-publish-group"><button type="submit" class="draft-primary-button publish-button">投稿する</button></div></div>
+<div class="draft-secondary-actions"><span id="delete-draft-area" {% if not draft %}hidden{% endif %}><button type="button" id="delete-draft" class="danger" data-url="{{ url_for('draft_delete') }}">下書きを削除する</button></span><a class="draft-back-link" href="{{ url_for('index') }}">一覧に戻る</a></div>
 <noscript><p>写真のプレビューとことばの抽選にはJavaScriptを有効にしてください。</p></noscript>
 </form>{% endif %}{% endblock %}

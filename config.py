@@ -10,6 +10,7 @@ def settings():
     production = os.getenv("APP_ENV", "development") == "production"
     return {
         "SECRET_KEY": os.getenv("SECRET_KEY"),
+        "TEMPLATES_AUTO_RELOAD": not production,
         "DATABASE_PATH": os.getenv("DATABASE_PATH", str(ROOT / "instance/app.sqlite3")),
         "UPLOAD_DIR": os.getenv("UPLOAD_DIR", str(ROOT / "instance/uploads")),
         "SESSION_DIR": os.getenv("SESSION_DIR", str(ROOT / "instance/sessions")),
