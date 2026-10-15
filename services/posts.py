@@ -57,6 +57,7 @@ def save_post(user_id, form, key, candidates, selected, draft_id=None, version=N
             now = utcnow()
             values = dict(image_key=image_key, location=form.location.data or None,
                 location_other=(form.location_other.data or None) if form.location.data == 'other' else None,
+                show_map=form.show_map.data == '1',
                 word=selected, candidate_word_1=candidates[0] if candidates else None,
                 candidate_word_2=candidates[1] if candidates else None, caption=caption,
                 status='published' if publish else 'draft', published_at=now if publish else None, updated_at=now)
@@ -139,6 +140,7 @@ def update_published_post(user_id, post_id, version, form, selected=None, draw_t
                     raise UnprocessableEntity('この言葉は抽選停止になりました。もう一度引いてください。')
             values = dict(location=form.location.data,
                 location_other=(form.location_other.data or None) if form.location.data == 'other' else None,
+                show_map=form.show_map.data == '1',
                 caption=form.caption.data, updated_at=utcnow(), version=Post.version + 1)
             if candidates:
                 values.update(word=selected, candidate_word_1=candidates[0], candidate_word_2=candidates[1])

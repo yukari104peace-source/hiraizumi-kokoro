@@ -93,6 +93,7 @@
 | `image_key` | VARCHAR(255) | CharField | 条件付き | UNIQUE。画像保存先の相対キー。下書きはNULL可、公開時必須。 |
 | `location` | VARCHAR(20) | CharField | 条件付き | `chusonji`・`motsuji`・`other`。下書きはNULL可。 |
 | `location_other` | VARCHAR(100) | CharField | 任意 | 「その他」の具体的な場所名。 |
+| `show_map` | BOOLEAN | BooleanField | 必須 | 1なら写真右下にYahoo!マップ検索リンクを表示。新規投稿の初期値は0。 |
 | `word_id` | INTEGER | ForeignKeyField → Word | 条件付き | FK → words.id、選んだ言葉。下書きはNULL可、公開時必須。 |
 | `candidate_word_1_id` | INTEGER | ForeignKeyField → Word | 任意 | FK → words.id、保存した候補1。 |
 | `candidate_word_2_id` | INTEGER | ForeignKeyField → Word | 任意 | FK → words.id、保存した候補2。 |
@@ -159,6 +160,7 @@ erDiagram
 | posts.version | 1以上。 |
 | posts.location | NULLまたはchusonji・motsuji・other。 |
 | posts.location_other | NULL、またはlocationが明示的にotherで、1〜100文字。 |
+| posts.show_map | 0または1。その他で具体的な場所名が空の場合は1でもリンクを表示しない。 |
 | 候補2列 | 両方NULL、または両方非NULLかつ異なるID。片方だけは不可。 |
 | 選んだ言葉 | word_idが非NULLなら候補2列も非NULLで、そのいずれかと一致する。公開後も候補を保持する。 |
 | caption | 下書きでも300文字以内。 |

@@ -13,13 +13,19 @@ def metadata(response):
 
 def test_empty_draft_resume_and_get_no_mutation(app, client, posting):
     data, _ = posting
-    empty = {k: data[k] for k in ('csrf_token', 'submission_key')}
+    empty = {k: data[k] for k in ('csrf_token', 'submission_key', 'show_map')}
+    explanation = '下書きは自分だけが見られます。「下書きを保存する」を押すと保存され、「投稿する」を押すまで公開されません。一覧に戻っても、あとから下書きを再開できます。'
+    new_page = client.get('/posts/new').text
+    assert explanation in new_page
+    assert 'class="draft-privacy-note"' in new_page
+    assert '保存ボタンを押すまで変更は保存されません' not in new_page
     assert client.get('/draft').status_code == 302
     with app.app_context(): assert Post.select().count() == 0
     saved = client.post('/draft', data=empty)
     assert saved.status_code == 200
     page = client.get('/draft')
     assert page.status_code == 200
+    assert explanation in page.text
     assert '下書きを再開する' in client.get('/posts/new').text
     with app.app_context():
         post = Post.get()
@@ -33,6 +39,10 @@ def test_private_draft_resume_then_publish(app, client, posting):
     saved = client.post('/draft', data={**data, 'photo': picture()})
     assert saved.status_code == 200
     post_id = saved.json['id']
+    index_page = client.get('/').text
+    assert '下書きを再開する' in index_page
+    assert 'class="button resume-draft-button"' in index_page
+    assert data['caption'] not in index_page
     assert client.get(f'/media/{post_id}').status_code == 200
     other = app.test_client()
     assert other.get(f'/media/{post_id}').status_code == 404
@@ -87,7 +97,8 @@ def test_foreign_draft_id_and_csrf(app, client, posting):
     other = app.test_client(); register(other, 'another'); login(other, 'another')
     page = other.get('/posts/new').text
     key = re.search(r'name="submission_key" value="([^"]+)"', page).group(1)
-    response = other.post('/draft', data={'csrf_token': csrf_token(other, "/"), 'submission_key': key, **metadata(saved)})
+    response = other.post('/draft', data={'csrf_token': csrf_token(other, "/"), 'submission_key': key,
+                                          'show_map': '0', **metadata(saved)})
     assert response.status_code == 404
     assert client.post('/draft', data={}).status_code == 400
 

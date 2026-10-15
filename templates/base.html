@@ -2,7 +2,7 @@
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>平泉の細道</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Yuji+Syuku&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='20261015-new-post-text-9') }}"></head>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='20261015-resume-button-row-23') }}"></head>
 <body><a class="skip-link" href="#main">本文へ移動</a>
 <header class="site-header"><div class="header-inner">
 <nav class="account-nav" aria-label="アカウント"><a href="{{ url_for('index') }}">写真一覧</a>{% if current_user.is_authenticated %}<span>{{ current_user.username }} さん</span><form method="post" action="{{ url_for('logout_submit') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button>ログアウト</button></form>{% else %}<a href="{{ url_for('register_form') }}">ユーザー登録</a><a href="{{ url_for('login_form') }}">ログイン</a>{% endif %}</nav>

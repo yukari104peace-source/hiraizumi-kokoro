@@ -134,3 +134,13 @@ python -m flask --app app:create_app init-db
 サーバー管理者は `python -m flask --app app:create_app remove-comment コメントID` で、不適切なコメントの本文を確認付きで削除できます。コメントIDは画面のHTMLの `id="comment-番号"` で確認できます。Web上に管理者権限は追加していません。
 
 追加は `POST /posts/<post_id>/comments`（body、任意のparent_id）、本人削除は `POST /comments/<comment_id>/delete`。どちらもログインとCSRFトークンが必要です。同じ文章の投稿は禁止しません。
+
+## Yahoo!マップリンク
+
+投稿者は投稿・編集画面で「写真の位置をYahoo!マップで表示しますか？」を選べます。新規投稿は「表示しない」が初期値です。表示する場合、中尊寺・毛越寺は施設名と平泉町、その他は入力された具体的な場所名をYahoo!マップで検索するリンクを写真右下に表示します。
+
+既存DBへ導入するときは、次のコマンドを実行してからアプリを再起動します。コマンドはDBを `instance/backups/` にバックアップし、列が追加済みなら何も変更しません。既存の公開投稿は地図表示を有効にし、既存の下書きは無効のままにします。
+
+```bash
+python -m flask --app app:create_app migrate-map-links
+```

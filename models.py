@@ -1,6 +1,7 @@
 """Three initial tables. Runtime database binding belongs to each Flask app."""
 from datetime import datetime, timezone
 from uuid import uuid4
+from urllib.parse import urlencode
 from flask import current_app
 from flask_login import UserMixin
 from peewee import (AutoField, BooleanField, CharField, Check, DateTimeField,
@@ -74,6 +75,7 @@ class Post(BaseModel):
                           constraints=[Check("image_key IS NULL OR (length(trim(image_key)) > 0 AND length(image_key) <= 255)")])
     location = CharField(null=True, constraints=[Check("location IS NULL OR location IN ('chusonji', 'motsuji', 'other')")])
     location_other = CharField(max_length=100, null=True)
+    show_map = BooleanField(default=False, constraints=[Check("show_map IN (0, 1)")])
     word = ForeignKeyField(Word, null=True, backref="selected_posts", on_delete="RESTRICT")
     candidate_word_1 = ForeignKeyField(Word, null=True, backref="candidate_one_posts", on_delete="RESTRICT")
     candidate_word_2 = ForeignKeyField(Word, null=True, backref="candidate_two_posts", on_delete="RESTRICT")
@@ -95,6 +97,19 @@ class Post(BaseModel):
             Check("updated_at >= created_at"),
             Check("published_at IS NULL OR (published_at >= created_at AND published_at <= updated_at)"),
         ]
+
+    @property
+    def map_url(self):
+        if not self.show_map:
+            return None
+        names = {
+            "chusonji": "中尊寺 岩手県平泉町",
+            "motsuji": "毛越寺 岩手県平泉町",
+        }
+        query = names.get(self.location)
+        if self.location == "other" and self.location_other:
+            query = self.location_other
+        return "https://map.yahoo.co.jp/search?" + urlencode({"q": query}) if query else None
 
 
 Post.add_index(SQL("CREATE UNIQUE INDEX IF NOT EXISTS posts_one_draft ON posts (user_id) WHERE status = 'draft'"))

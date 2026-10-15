@@ -30,7 +30,7 @@ def posting(app, client):
     draw = client.post('/words/draw', data={'csrf_token': csrf}).get_json()
     return {'csrf_token': csrf, 'submission_key': hidden('submission_key'),
             'draw_token': draw['token'], 'word_id': str(draw['words'][0]['id']),
-            'location': 'chusonji', 'caption': '今日の景色'}, draw
+            'location': 'chusonji', 'show_map': '0', 'caption': '今日の景色'}, draw
 
 
 def test_publish_and_retry(app, client, posting):
@@ -88,6 +88,14 @@ def test_methods_csrf_and_auth(app, client, posting):
     assert client.get('/words/draw').status_code == 405
     assert client.post('/posts', data={k:v for k,v in data.items() if k != 'csrf_token'}).status_code == 400
     assert app.test_client().get('/posts/new').status_code == 302
+
+
+@pytest.mark.parametrize('show_map', ['', 'yes', '2'])
+def test_invalid_map_choice_creates_nothing(app, client, posting, show_map):
+    data, _ = posting
+    assert client.post('/posts', data={**data, 'show_map': show_map, 'photo': picture()}).status_code == 422
+    with app.app_context():
+        assert Post.select().count() == 0
 
 
 def test_delete_published_post(app, client, posting):

@@ -19,7 +19,10 @@ def test_edit_keeps_word_date_and_image(app, client, published):
     url, data, post_id = published
     with app.app_context(): before = Post.get_by_id(post_id)
     assert url in client.get('/').text
-    assert client.get(url).status_code == 200
+    edit_page = client.get(url)
+    assert edit_page.status_code == 200
+    assert '変更を反映する' in edit_page.text
+    assert '変更を保存する' not in edit_page.text
     with app.app_context(): assert Post.get_by_id(post_id).version == 1
     response = client.post(url, data={**data, 'caption': '新しいひとこと', 'location': 'other', 'location_other': '川辺', 'word_id': '999'})
     assert response.status_code == 200

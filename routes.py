@@ -236,7 +236,8 @@ def register_routes(app):
         token = URLSafeTimedSerializer(current_app.secret_key, salt="word-draw-v1").dumps(
             {"user": current_user.id, "words": [w.id for w in words]}) if words else ""
         session["post_keys"] = (session.get("post_keys", []) + [draft.submission_key])[-20:]
-        form = PostForm(data={"location": draft.location or "", "location_other": draft.location_other or "", "caption": draft.caption})
+        form = PostForm(data={"location": draft.location or "", "location_other": draft.location_other or "",
+                              "show_map": "1" if draft.show_map else "0", "caption": draft.caption})
         return render_template("post_form.html", form=form, draft=draft, words=words,
                                draw_token=token, submission_key=draft.submission_key)
 
@@ -288,7 +289,8 @@ def register_routes(app):
     def post_edit(post_id):
         post = own_published_post(post_id)
         return render_template("post_edit.html", post=post, form=PostForm(data={
-            "location": post.location, "location_other": post.location_other or "", "caption": post.caption}))
+            "location": post.location, "location_other": post.location_other or "",
+            "show_map": "1" if post.show_map else "0", "caption": post.caption}))
 
     @app.post("/posts/<int:post_id>/edit")
     @login_required

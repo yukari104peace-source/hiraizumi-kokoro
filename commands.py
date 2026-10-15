@@ -1,11 +1,57 @@
 import click
+import sqlite3
+from datetime import datetime
+from pathlib import Path
 from flask.cli import with_appcontext
 from models import create_tables
 from services.words import COLUMNS, import_words, read_words
 from models import Word
 
 
+def migrate_map_links(database_path):
+    """Add posts.show_map once and return the backup path, or None if current."""
+    database_path = Path(database_path)
+    with sqlite3.connect(database_path) as connection:
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(posts)")}
+    if "show_map" in columns:
+        return None
+    backup_dir = database_path.parent / "backups"
+    backup_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    backup_path = backup_dir / f"before-map-links-{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}.sqlite3"
+    with sqlite3.connect(database_path) as source, sqlite3.connect(backup_path) as target:
+        source.backup(target)
+    backup_path.chmod(0o600)
+    with sqlite3.connect(database_path) as connection:
+        connection.execute(
+            "ALTER TABLE posts ADD COLUMN show_map INTEGER NOT NULL DEFAULT 0 "
+            "CHECK(show_map IN (0, 1))"
+        )
+        connection.execute(
+            "UPDATE posts SET show_map = 1 "
+            "WHERE status = 'published' AND "
+            "(location IN ('chusonji', 'motsuji') OR "
+            "(location = 'other' AND length(trim(coalesce(location_other, ''))) > 0))"
+        )
+    return backup_path
+
+
 def register_commands(app):
+    @app.cli.command("migrate-map-links")
+    @with_appcontext
+    def migrate_map_links_command():
+        """Back up the DB and add the Yahoo! map visibility setting."""
+        from flask import current_app
+        db = current_app.extensions["database"]
+        database_path = db.database
+        if not db.is_closed():
+            db.close()
+        backup_path = migrate_map_links(database_path)
+        if backup_path is None:
+            click.echo("地図リンク用の列は追加済みです。変更していません。")
+        else:
+            click.echo(f"バックアップ：{backup_path}")
+            click.echo("地図リンク用の列を追加し、既存の公開投稿を表示対象にしました。")
+
     @app.cli.command("remove-comment")
     @click.argument("comment_id", type=int)
     @with_appcontext

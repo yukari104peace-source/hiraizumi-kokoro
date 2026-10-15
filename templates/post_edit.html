@@ -1,12 +1,17 @@
 {% extends "base.html" %}{% block content %}
-<h1>投稿を編集</h1>
+<h1 class="edit-page-title">投稿を編集</h1>
 <form id="edit-post-form" method="post" action="{{ url_for('post_update', post_id=post.id) }}" enctype="multipart/form-data">
 {{ form.hidden_tag() }}<input type="hidden" name="version" value="{{ post.version }}">
 <img id="edit-preview" src="{{ url_for('post_image', post_id=post.id) }}" alt="投稿した写真">
 <div class="field">{{ form.photo.label }}{{ form.photo(accept='image/jpeg,image/png') }}<small>変更するときだけ写真を選んでください。JPEG・PNG、5MB以下。</small></div>
 <div class="field">{{ form.location.label }}{{ form.location() }}</div>
 <div class="field" id="edit-other" {% if post.location != 'other' %}hidden{% endif %}>{{ form.location_other.label }}{{ form.location_other(maxlength=100) }}</div>
-<h2>{{ post.word.phrase }}</h2><p>{{ post.word.reading }}</p><small><a class="source" href="{{ post.word.reference_url }}" target="_blank" rel="noopener noreferrer">{{ post.word.source_label }}</a></small>
+<fieldset class="map-choice"><legend>{{ form.show_map.label.text }}</legend>
+{% for option in form.show_map %}<label>{{ option }} {{ option.label.text }}</label>{% endfor %}
+{% for error in form.show_map.errors %}<p class="error">{{ error }}</p>{% endfor %}
+<small>「表示する」を選ぶと、公開した写真にYahoo!マップへのリンクが付きます。</small>
+</fieldset>
+<div class="edit-current-word"><h2>{{ post.word.phrase }}</h2><p>{{ post.word.reading }}</p><small><a class="source" href="{{ post.word.reference_url }}" target="_blank" rel="noopener noreferrer">{{ post.word.source_label }}</a></small></div>
 <section aria-labelledby="edit-words-heading"><h2 id="edit-words-heading">ことばを選び直す</h2>
 <p>2件ずつランダムに引けます。新規投稿と共通の履歴で、一巡するまで重複しません。変更は保存後に公開されます。</p>
 <input type="hidden" name="edit_draw_token" value="">
@@ -17,7 +22,7 @@
 </section>
 <div class="field">{{ form.caption.label }}{{ form.caption(rows=4, maxlength=300) }}<small>300文字以内</small></div>
 <p id="edit-error" class="error" role="alert"></p>
-<div class="actions"><button type="submit">変更を保存する</button><a href="{{ url_for('index') }}">一覧に戻る</a></div>
+<div class="actions"><button type="submit">変更を反映する</button><a href="{{ url_for('index') }}">一覧に戻る</a></div>
 <noscript><p>変更の保存にはJavaScriptを有効にしてください。</p></noscript>
 </form>
 <script src="{{ url_for('static', filename='js/post_edit.js') }}" defer></script>

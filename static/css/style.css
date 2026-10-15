@@ -33,6 +33,10 @@ h1,h2,.word-phrase,#word-options label{font-family:var(--round);font-weight:900;
 
 #edit-word-options article{padding:20px;border:1px solid var(--pink);border-radius:12px;margin:20px 0}
 #edit-word-options label{font-weight:700;font-size:1.4rem}
+#word-options article label,#edit-word-options article label{margin-bottom:3px}
+#word-options article p,#edit-word-options article p{margin:2px 0;line-height:1.55}
+#word-options article .source,#edit-word-options article .source{display:inline-block;margin-top:2px}
+#edit-post-form button{min-height:40px;padding-top:7px;padding-bottom:7px}
 
 /* Double pink frame with inset corners, based on docs/images/図1.png.
    Nine-slice scaling keeps the corner shape at every card size. */
@@ -96,8 +100,81 @@ h1,h2,.word-phrase,#word-options label{font-family:var(--round);font-weight:900;
 #delete-draft{max-width:100%;padding:10px 12px}
 .draft-secondary-actions .draft-back-link{flex-shrink:0;white-space:nowrap}
 .draft-back-link{font-size:1.2rem;min-height:44px;display:inline-flex;align-items:center}
-@media(max-width:600px){.draft-actions{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.draft-actions{grid-template-columns:minmax(0,1fr)}.draft-privacy-note{font-size:.85rem;line-height:1.6}}
 
-.feed-actions .new-post-button{min-width:min(240px,100%);padding-left:36px;padding-right:36px;font-size:1.1rem}
+.feed-actions .new-post-button{min-width:min(240px,100%);padding-left:36px;padding-right:36px;font-size:1.1rem;letter-spacing:.08em}
+.button.resume-draft-button{background:#f6dce5;border-color:#b66d88;color:#623347}
+.feed-actions .new-post-button,.feed-actions .resume-draft-button{width:240px;min-width:240px}
 
-@media(max-width:600px){.feed-actions .new-post-button{flex:0 1 auto}}
+@media(max-width:600px){.feed-actions{flex-wrap:nowrap}.feed-actions .new-post-button,.feed-actions .resume-draft-button{flex:1 1 0;width:auto;min-width:0;min-height:42px;padding:7px 6px;font-size:.85rem;white-space:nowrap}.feed-actions .new-post-button{letter-spacing:.03em}}
+
+.tagline{font-size:clamp(1.1rem,2.7vw,1.55rem)}
+@media(max-width:600px){.tagline{font-size:1.02rem}}
+
+/* Compact vertical rhythm throughout the site. */
+main{padding-top:22px;padding-bottom:22px}
+.header-inner{padding-top:10px;padding-bottom:22px}
+.brand{margin-top:14px}
+.tagline{margin-top:4px}
+.feed-actions{margin-top:0;margin-bottom:22px}
+.post-card{margin-bottom:22px;padding-bottom:16px}
+.post-word-row{margin-top:14px}
+.post-footer{margin-top:14px;padding-top:12px}
+.auth-card{margin-top:0;margin-bottom:12px;padding-top:20px;padding-bottom:20px}
+.auth-card h1{margin-top:4px;margin-bottom:4px}
+.auth-intro{margin-bottom:16px}
+.auth-switch{margin-top:16px;margin-bottom:6px}
+.auth-back{margin-top:16px;padding-top:14px}
+.field{margin-top:14px;margin-bottom:14px}
+.actions{margin-top:18px;margin-bottom:18px}
+#post-form,#edit-post-form{padding-top:16px;padding-bottom:16px}
+#word-options article,#edit-word-options article{margin-top:12px;margin-bottom:12px;padding-top:14px;padding-bottom:14px}
+section{margin-top:18px;margin-bottom:18px}
+.comment-thread{margin-top:8px;margin-bottom:12px}
+.comment-form{padding-top:8px}
+.draft-secondary-actions{margin-top:12px;margin-bottom:12px}
+.site-footer{margin-top:14px;padding-top:20px;padding-bottom:20px}
+@media(max-width:600px){
+  main{padding-top:16px;padding-bottom:16px}
+  .header-inner{padding-top:8px;padding-bottom:18px}
+  .brand{margin-top:12px}
+  .feed-actions{margin-bottom:16px}
+  .post-card{margin-bottom:16px;padding-bottom:12px}
+  .post-word-row{margin-top:12px}
+  #post-form,#edit-post-form{padding-top:12px;padding-bottom:12px}
+}
+
+.map-choice{margin:14px 0;padding:12px 14px;border:2px solid #c7d996;border-radius:10px}
+.map-choice legend{padding:0 6px;font-weight:700}
+.map-choice label{display:inline-flex;align-items:center;gap:6px;margin-right:22px;min-height:44px}
+.map-choice small{display:block;margin-top:4px}
+.post-photo>img{display:block;width:100%;height:auto;border-radius:12px}
+.post-location{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 12px}
+.map-link{color:#365f25;font:inherit;text-decoration:underline;text-underline-offset:4px}
+.map-link:hover{text-decoration-thickness:2px}
+
+/* Keep the mobile edit form compact without shrinking its controls. */
+@media(max-width:600px){
+  .edit-page-title{margin:0 0 8px;line-height:1.35}
+  #edit-post-form{line-height:1.6}
+  #edit-preview{display:block}
+  #edit-post-form .field{margin-top:8px;margin-bottom:8px}
+  #edit-post-form .field label{margin-bottom:3px}
+  #edit-post-form .field small{margin-top:2px;line-height:1.45}
+  #edit-post-form .map-choice{margin:8px 0;padding:7px 10px}
+  #edit-post-form .map-choice label{margin-bottom:0;min-height:38px}
+  #edit-post-form .map-choice small{margin-top:0;line-height:1.45}
+  .edit-current-word{margin:8px 0}
+  .edit-current-word h2,.edit-current-word p{margin:0}
+  .edit-current-word small{line-height:1.45}
+  #edit-post-form section{margin-top:10px;margin-bottom:10px}
+  #edit-post-form section h2{margin:0 0 4px}
+  #edit-post-form section>p{margin:4px 0 7px;line-height:1.55}
+  #edit-words-heading + p{font-size:.82rem}
+  #edit-post-form section>label{margin-bottom:5px}
+  #edit-post-form section>button{margin:3px 0}
+  #edit-word-options article{margin-top:7px;margin-bottom:7px;padding-top:10px;padding-bottom:10px}
+  #word-options article p,#edit-word-options article p{margin:1px 0;line-height:1.45}
+  #edit-post-form .actions{margin-top:10px;margin-bottom:6px}
+  #edit-error:empty{display:none}
+}
