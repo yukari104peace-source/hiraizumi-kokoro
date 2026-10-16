@@ -25,7 +25,10 @@ for (const form of document.querySelectorAll('.like-form')) {
       }
       button.classList.toggle('is-liked', result.liked);
       button.setAttribute('aria-pressed', String(result.liked));
-      button.setAttribute('aria-label', `${result.liked ? 'いいねを取り消す' : 'いいねする'}（${result.count}件）`);
+      const label = button.classList.contains('comment-like-button')
+        ? (result.liked ? 'コメントのいいねを取り消す' : 'コメントにいいねする')
+        : (result.liked ? 'いいねを取り消す' : 'いいねする');
+      button.setAttribute('aria-label', `${label}（${result.count}件）`);
       button.querySelector('[aria-hidden]').textContent = result.liked ? '♥' : '♡';
       button.querySelector('span:last-child').textContent = result.count;
       form.elements.namedItem('action').value = result.liked ? 'unlike' : 'like';

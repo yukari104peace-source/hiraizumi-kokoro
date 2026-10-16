@@ -245,14 +245,15 @@ SQLiteのCHECKは式の結果がNULLでも通るため、「公開なら必須�
 
 Excelの固定番号とDBのidを分離することで、並び順が変わっても投稿との関係が壊れない。ユーザー用のアップロード画面や言葉編集画面は初版に作らず、運営者が実行する取り込み手順として用意する。
 
-## 13. 将来追加するテーブル（初版では作らない）
+## 13. いいね・コメント用テーブル
 
 | テーブル・用途 | 主なカラムと型 | キー・制約・関係 |
 |---|---|---|
 | likes：いいね | id INTEGER、user_id INTEGER、post_id INTEGER、created_at DATETIME。全て必須。 | idがPK。user_id→users、post_id→postsのFK。同じ(user_id, post_id)はUNIQUE。post_idに索引。投稿削除時は関連いいねも削除。 |
 | comments：コメント | id INTEGER、user_id INTEGER、post_id INTEGER、body VARCHAR(200)、created_at DATETIME。全て必須。 | idがPK。user_id→users、post_id→postsのFK。本文は1〜200文字・空白のみ不可。同じ文章の重複は禁止しない。(post_id, created_at, id)に索引。投稿削除時は関連コメントも削除。 |
+| comment_likes：コメントのいいね | id INTEGER、user_id INTEGER、comment_id INTEGER、created_at DATETIME。全て必須。 | idがPK。user_id→users、comment_id→commentsのFK。同じ(user_id, comment_id)はUNIQUE。comment_idに索引。コメント削除時は関連いいねも削除。 |
 
-将来の2テーブルでは、対象が公開投稿かをアプリで検証する。本人の操作制限や管理者の削除運用も追加時に決める。場所による絞り込みは既存posts.locationで対応でき、新テーブルは不要。
+いいねの対象が公開投稿または公開投稿の有効なコメントであることをアプリで検証する。削除済みコメントにはいいねできず、本人削除・管理者削除のどちらでも既存のコメントいいねを削除する。場所による絞り込みは既存posts.locationで対応でき、新テーブルは不要。
 
 ## 14. Peeweeで実装するときの注意点
 
@@ -281,7 +282,7 @@ Excelの固定番号とDBのidを分離することで、並び順が変わっ�
 - 「その他」の具体名が任意で保存でき、別の場所へ変更したら消える。
 - 同じ送信キーの再送や古いversionの更新で、重複・上書きが起きない。
 - 投稿削除で画像も消え、言葉とユーザーは残る。
-- likes・commentsは実装済み。commentsにはparent_id（同一投稿の親コメント）、is_deletedを追加。削除は本文を置換し返信を保持する。返信は1段までで、同一投稿・階層の検証はアプリ側で行う。
+- likes・comments・comment_likesは実装済み。commentsにはparent_id（同一投稿の親コメント）、is_deletedを追加。削除は本文を置換し返信を保持し、対象コメントのいいねは削除する。返信は1段までで、同一投稿・階層の検証はアプリ側で行う。
 
 
 ## 追加仕様：利用者ごとの抽選記録（2026-10-13）

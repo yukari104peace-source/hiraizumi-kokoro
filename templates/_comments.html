@@ -4,11 +4,22 @@
 {% else %}
 <p class="comment-author">{{ comment.user.username }} <time datetime="{{ comment.created_at.isoformat() }}Z">{{ comment.created_at.strftime('%Y-%m-%d') }} UTC</time></p>
 <p class="comment-body">{{ comment.body }}</p>
+<div class="comment-actions">
+{% if current_user.is_authenticated %}
+<form class="like-form comment-like-form" method="post" action="{{ url_for('comment_like', comment_id=comment.id) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="page" value="{{ page }}">
+<input type="hidden" name="action" value="{{ 'unlike' if comment.id in liked_comment_ids else 'like' }}">
+<button class="like-button comment-like-button{% if comment.id in liked_comment_ids %} is-liked{% endif %}" type="submit" aria-pressed="{{ 'true' if comment.id in liked_comment_ids else 'false' }}" aria-label="{{ 'コメントのいいねを取り消す' if comment.id in liked_comment_ids else 'コメントにいいねする' }}（{{ comment_like_counts.get(comment.id, 0) }}件）"><span aria-hidden="true">{{ '♥' if comment.id in liked_comment_ids else '♡' }}</span> いいね <span>{{ comment_like_counts.get(comment.id, 0) }}</span></button>
+</form>
+{% else %}
+<a class="like-button comment-like-button" href="{{ url_for('login_form', next='/') }}" aria-label="ログインしてコメントにいいねする（{{ comment_like_counts.get(comment.id, 0) }}件）"><span aria-hidden="true">♡</span> いいね {{ comment_like_counts.get(comment.id, 0) }}</a>
+{% endif %}
 {% if current_user.is_authenticated and current_user.id == comment.user_id %}
 <form method="post" action="{{ url_for('comment_delete', comment_id=comment.id) }}" class="comment-delete-form">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="page" value="{{ page }}">
 <button type="submit" class="danger">コメントを削除</button>
 </form>{% endif %}
+</div>
 {% if current_user.is_authenticated and not reply %}
 <details class="reply-form"><summary>返信する</summary>
 {{ comment_form(comment.id) }}

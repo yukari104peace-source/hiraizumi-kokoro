@@ -35,6 +35,39 @@ def migrate_map_links(database_path):
     return backup_path
 
 
+def migrate_comment_likes(database_path):
+    """Back up the database and create comment_likes once."""
+    database_path = Path(database_path)
+    with sqlite3.connect(database_path) as connection:
+        exists = connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'comment_likes'"
+        ).fetchone()
+    if exists:
+        return None
+    backup_dir = database_path.parent / "backups"
+    backup_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    backup_path = backup_dir / f"before-comment-likes-{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}.sqlite3"
+    with sqlite3.connect(database_path) as source, sqlite3.connect(backup_path) as target:
+        source.backup(target)
+    backup_path.chmod(0o600)
+    with sqlite3.connect(database_path) as connection:
+        connection.executescript(
+            """
+            CREATE TABLE comment_likes (
+                id INTEGER NOT NULL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                comment_id INTEGER NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
+                created_at DATETIME NOT NULL
+            );
+            CREATE UNIQUE INDEX comment_likes_user_comment
+                ON comment_likes (user_id, comment_id);
+            CREATE INDEX comment_likes_user_id ON comment_likes (user_id);
+            CREATE INDEX comment_likes_comment_id ON comment_likes (comment_id);
+            """
+        )
+    return backup_path
+
+
 def register_commands(app):
     @app.cli.command("migrate-map-links")
     @with_appcontext
@@ -52,17 +85,35 @@ def register_commands(app):
             click.echo(f"バックアップ：{backup_path}")
             click.echo("地図リンク用の列を追加し、既存の公開投稿を表示対象にしました。")
 
+    @app.cli.command("migrate-comment-likes")
+    @with_appcontext
+    def migrate_comment_likes_command():
+        """Back up the DB and add likes for comments and replies."""
+        from flask import current_app
+        db = current_app.extensions["database"]
+        database_path = db.database
+        if not db.is_closed():
+            db.close()
+        backup_path = migrate_comment_likes(database_path)
+        if backup_path is None:
+            click.echo("コメントいいね用のテーブルは追加済みです。変更していません。")
+        else:
+            click.echo(f"バックアップ：{backup_path}")
+            click.echo("コメントと返信のいいね用テーブルを追加しました。")
+
     @app.cli.command("remove-comment")
     @click.argument("comment_id", type=int)
     @with_appcontext
     def remove_comment(comment_id):
         """Server operator moderation; preserve replies and remove the body."""
-        from models import Comment
+        from models import Comment, CommentLike, database
         comment = Comment.get_or_none(Comment.id == comment_id)
         if not comment:
             raise click.ClickException("コメントが見つかりません。")
         click.confirm(f"コメント {comment_id}（投稿 {comment.post_id}）の本文を削除しますか？", abort=True)
-        Comment.update(body="削除済み", is_deleted=True).where(Comment.id == comment_id).execute()
+        with database.atomic("IMMEDIATE"):
+            CommentLike.delete().where(CommentLike.comment == comment_id).execute()
+            Comment.update(body="削除済み", is_deleted=True).where(Comment.id == comment_id).execute()
         click.echo("本文を削除しました。返信は残しています。")
 
     @app.cli.command("init-db")

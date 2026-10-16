@@ -149,5 +149,15 @@ class Comment(BaseModel):
         indexes = ((("post", "created_at", "id"), False),)
 
 
+class CommentLike(BaseModel):
+    user = ForeignKeyField(User, backref="comment_likes", on_delete="CASCADE")
+    comment = ForeignKeyField(Comment, backref="likes", on_delete="CASCADE")
+    created_at = DateTimeField(default=utcnow)
+
+    class Meta:
+        table_name = "comment_likes"
+        indexes = ((("user", "comment"), True),)
+
+
 def create_tables():
-    database.create_tables([User, Word, Post, WordDrawState, Like, Comment])
+    database.create_tables([User, Word, Post, WordDrawState, Like, Comment, CommentLike])

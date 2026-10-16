@@ -67,6 +67,8 @@ h1,h2,.word-phrase,#word-options label{font-family:var(--round);font-weight:900;
 .comment-author{font-weight:700}.comment-author time{font-size:.75rem;font-weight:400;color:#59634e}
 .comment-body{white-space:pre-wrap;overflow-wrap:anywhere}
 .comment-deleted{color:#59634e;font-size:.85rem}
+.comment-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.comment-like-form{text-align:left}.comment-like-button{min-height:36px;padding:4px 10px;font-size:.8rem}
 .comment-form{padding-top:12px}.comment-form button{margin-top:10px}
 .comment-delete-form{display:flex;justify-content:flex-end}.comment-delete-form button{font-size:.8rem}
 @media(max-width:600px){.comment-reply{margin-left:12px}}

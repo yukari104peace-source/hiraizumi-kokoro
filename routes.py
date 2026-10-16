@@ -3,7 +3,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from peewee import IntegrityError, DatabaseError, fn
 from extensions import login_manager
 from forms import LoginForm, RegisterForm, PostForm
-from models import Post, User, Word, Like, Comment, database
+from models import Post, User, Word, Like, Comment, CommentLike, database
 
 
 def safe_next(value):
@@ -52,15 +52,30 @@ def register_routes(app):
             (Like.user == current_user.id) & Like.post.in_(ids))} if ids and current_user.is_authenticated else set()
         comments = {post_id: [] for post_id in ids}
         replies = {}
+        comment_like_counts = {}
+        liked_comment_ids = set()
         if ids:
-            for comment in Comment.select(Comment, User).join(User).where(Comment.post.in_(ids)).order_by(Comment.created_at, Comment.id):
+            visible_comments = list(Comment.select(Comment, User).join(User).where(
+                Comment.post.in_(ids)).order_by(Comment.created_at, Comment.id))
+            for comment in visible_comments:
                 if comment.parent_id:
                     replies.setdefault(comment.parent_id, []).append(comment)
                 else:
                     comments[comment.post_id].append(comment)
+            comment_ids = [comment.id for comment in visible_comments if not comment.is_deleted]
+            if comment_ids:
+                comment_like_counts = dict(CommentLike.select(
+                    CommentLike.comment, fn.COUNT(CommentLike.id)).where(
+                    CommentLike.comment.in_(comment_ids)).group_by(CommentLike.comment).tuples())
+                if current_user.is_authenticated:
+                    liked_comment_ids = {row.comment_id for row in CommentLike.select(
+                        CommentLike.comment).where((CommentLike.user == current_user.id) &
+                                                   CommentLike.comment.in_(comment_ids))}
         return render_template("index.html", has_draft=has_draft, posts=posts, page=page,
                                has_next=page * 10 < total, like_counts=counts, liked_ids=liked,
-                               comments=comments, replies=replies)
+                               comments=comments, replies=replies,
+                               comment_like_counts=comment_like_counts,
+                               liked_comment_ids=liked_comment_ids)
 
     def comment_return(post_id):
         total = Post.select().where(Post.status == "published").count()
@@ -110,11 +125,48 @@ def register_routes(app):
                     (Post.status == "published")).first()
                 if not comment:
                     abort(404)
+                CommentLike.delete().where(CommentLike.comment == comment.id).execute()
                 Comment.update(body="削除済み", is_deleted=True).where(Comment.id == comment.id).execute()
         except DatabaseError:
             current_app.logger.exception("Could not delete comment")
             return render_template("error.html", message="コメントを削除できませんでした。もう一度お試しください。"), 500
         return comment_return(comment.post_id)
+
+    @app.post("/comments/<int:comment_id>/like")
+    @login_required
+    def comment_like(comment_id):
+        from flask import jsonify
+        ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        action = request.form.get("action")
+        try:
+            page = int(request.form.get("page", "1"))
+        except ValueError:
+            abort(400)
+        if action not in {"like", "unlike"} or page < 1:
+            abort(400)
+        try:
+            with database.atomic("IMMEDIATE"):
+                comment = Comment.select(Comment).join(Post).where(
+                    (Comment.id == comment_id) & (Comment.is_deleted == False) &
+                    (Post.status == "published")).first()
+                if not comment:
+                    abort(404)
+                if action == "like":
+                    CommentLike.get_or_create(user=current_user.id, comment=comment.id)
+                else:
+                    CommentLike.delete().where((CommentLike.user == current_user.id) &
+                                               (CommentLike.comment == comment.id)).execute()
+                count = CommentLike.select().where(CommentLike.comment == comment.id).count()
+                total = Post.select().where(Post.status == "published").count()
+        except DatabaseError:
+            current_app.logger.exception("Could not update comment like")
+            if ajax:
+                return jsonify(error="コメントのいいねを保存できませんでした。もう一度お試しください。"), 500
+            return render_template("error.html", message="コメントのいいねを保存できませんでした。一覧に戻ってもう一度お試しください。"), 500
+        if ajax:
+            return jsonify(liked=action == "like", count=count)
+        page = min(page, max(1, (total + 9) // 10))
+        return redirect(url_for("index", page=page, _anchor=f"comment-{comment.id}"), code=303)
 
     @app.post("/posts/<int:post_id>/like")
     @login_required

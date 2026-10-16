@@ -127,13 +127,17 @@ python -m flask --app app:create_app init-db
 
 ## コメント・返信
 
-投稿下部の「コメント・返信」を開くと、コメントと1段の返信を読めます。ログインすると1〜200文字で投稿でき、自分のコメントを削除できます。削除時は本文を消し、「削除済み」の表示と既存の返信を残します。削除済みコメントへの新しい返信、返信への返信はできません。投稿を削除すると関連するコメント・返信も削除します。HTMLは文字として表示します。コメントの編集・通知は未実装です。
+投稿下部の「コメント・返信」を開くと、コメントと1段の返信を読めます。ログインすると1〜200文字で投稿でき、自分のコメントを削除できます。通常コメントと返信には1人1回いいねでき、取り消せます。自分のコメントにもいいねできます。未ログインでは件数を表示し、ログインへ案内します。削除時は本文を消し、「削除済み」の表示と既存の返信を残し、そのコメントのいいねは削除します。削除済みコメントへの新しい返信、返信への返信はできません。投稿を削除すると関連するコメント・返信・いいねも削除します。HTMLは文字として表示します。コメントの編集・通知は未実装です。
 
-既存環境ではDBをバックアップし、`python -m flask --app app:create_app init-db` でcommentsテーブルを追加してからアプリを再起動します。
+既存環境へコメントのいいねを追加するときは、次のコマンドを実行してからアプリを再起動します。初回だけDBを `instance/backups/` にバックアップして `comment_likes` テーブルを作り、追加済みの場合は変更しません。
+
+```bash
+python -m flask --app app:create_app migrate-comment-likes
+```
 
 サーバー管理者は `python -m flask --app app:create_app remove-comment コメントID` で、不適切なコメントの本文を確認付きで削除できます。コメントIDは画面のHTMLの `id="comment-番号"` で確認できます。Web上に管理者権限は追加していません。
 
-追加は `POST /posts/<post_id>/comments`（body、任意のparent_id）、本人削除は `POST /comments/<comment_id>/delete`。どちらもログインとCSRFトークンが必要です。同じ文章の投稿は禁止しません。
+追加は `POST /posts/<post_id>/comments`（body、任意のparent_id）、本人削除は `POST /comments/<comment_id>/delete`、いいねは `POST /comments/<comment_id>/like`（actionはlikeまたはunlike）。いずれもログインとCSRFトークンが必要です。同じ文章の投稿は禁止しません。
 
 ## Yahoo!マップリンク
 
