@@ -68,7 +68,12 @@ h1,h2,.word-phrase,#word-options label{font-family:var(--round);font-weight:900;
 .comment-body{white-space:pre-wrap;overflow-wrap:anywhere}
 .comment-deleted{color:#59634e;font-size:.85rem}
 .comment-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.comment-like-form{text-align:left}.comment-like-button{min-height:36px;padding:4px 10px;font-size:.8rem}
+.comment-like-form,.comment-like-control{display:inline-flex;align-items:center;gap:2px;text-align:left}
+.comment-like-button{display:inline-grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:#86445d;text-decoration:none;font-size:1.35rem;line-height:1;cursor:pointer}
+.comment-like-button:hover{background:#f9e5ed}.comment-like-button.is-liked{color:#a33f65}.comment-like-button:disabled{cursor:wait;opacity:.65}
+.comment-like-button:focus-visible{outline:3px solid #32583d;outline-offset:2px}
+.comment-like-count{min-width:1.2em;color:#59634e;font-size:.8rem;font-variant-numeric:tabular-nums}
+.comment-like-form .like-status{flex-basis:100%;margin:0}
 .comment-form{padding-top:12px}.comment-form button{margin-top:10px}
 .comment-delete-form{display:flex;justify-content:flex-end}.comment-delete-form button{font-size:.8rem}
 @media(max-width:600px){.comment-reply{margin-left:12px}}

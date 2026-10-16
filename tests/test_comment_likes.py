@@ -1,4 +1,5 @@
 import sqlite3
+import re
 
 import pytest
 
@@ -45,8 +46,18 @@ def test_comment_and_reply_likes_ajax_and_persistence(app, client, posting):
         assert CommentLike.select().count() == 1
     client.post("/logout", data={"csrf_token": csrf_token(client, "/")})
     login(client)
-    assert f'action="/comments/{parent_id}/like"' in client.get("/").text
-    assert "コメントのいいねを取り消す（1件）" in client.get("/").text
+    page = client.get("/").text
+    assert f'action="/comments/{parent_id}/like"' in page
+    assert "コメントのいいねを取り消す（1件）" in page
+    control = re.search(
+        rf'<form class="like-form comment-like-form"[^>]*action="/comments/{parent_id}/like".*?</form>',
+        page, re.DOTALL
+    ).group(0)
+    assert 'class="comment-like-button is-liked"' in control
+    assert '<span aria-hidden="true">♥</span></button>' in control
+    assert '<span class="comment-like-count" data-like-count aria-hidden="true">1</span>' in control
+    assert 'class="like-button comment-like-button' not in control
+    assert " いいね " not in control
 
 
 def test_comment_like_multiple_users_anonymous_and_delete(app, client, posting):

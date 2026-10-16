@@ -1,5 +1,6 @@
 for (const form of document.querySelectorAll('.like-form')) {
-  const button = form.querySelector('.like-button');
+  const button = form.querySelector('button[type="submit"]');
+  const count = form.querySelector('[data-like-count]') || button.querySelector('span:last-child');
   const status = document.createElement('p');
   status.className = 'like-status';
   status.setAttribute('role', 'status');
@@ -30,7 +31,7 @@ for (const form of document.querySelectorAll('.like-form')) {
         : (result.liked ? 'いいねを取り消す' : 'いいねする');
       button.setAttribute('aria-label', `${label}（${result.count}件）`);
       button.querySelector('[aria-hidden]').textContent = result.liked ? '♥' : '♡';
-      button.querySelector('span:last-child').textContent = result.count;
+      count.textContent = result.count;
       form.elements.namedItem('action').value = result.liked ? 'unlike' : 'like';
     } catch (error) {
       status.textContent = error instanceof TypeError || error instanceof SyntaxError
