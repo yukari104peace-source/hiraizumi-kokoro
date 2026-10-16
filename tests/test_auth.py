@@ -21,6 +21,11 @@ def test_registration_login_logout_and_hash(app, client):
     assert "yukari さん" not in client.get("/").text
 
 
+def test_registration_explains_public_username(client):
+    page = client.get("/register").text
+    assert "投稿・コメント・いいねした人の名前として公開されます" in page
+
+
 def test_csrf_and_get_logout(client):
     assert client.post("/register", data={"username": "x", "password": "longpassword"}).status_code == 400
     assert client.post("/logout").status_code == 400

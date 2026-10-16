@@ -13,7 +13,9 @@ def test_ajax_like_updates_without_redirect(app, client, posting):
     for action, liked, count in [('like', True, 1), ('like', True, 1), ('unlike', False, 0)]:
         response = client.post(url, data={'csrf_token': data['csrf_token'], 'action': action}, headers=headers)
         assert response.status_code == 200
-        assert response.json == {'liked': liked, 'count': count}
+        assert response.json == {
+            'liked': liked, 'count': count, 'users': ['yukari'] if liked else []
+        }
         assert 'Location' not in response.headers
     response = client.post(url, data={'action': 'like'}, headers=headers)
     assert response.status_code == 400 and response.json['error']
@@ -57,12 +59,31 @@ def test_multiple_users_and_post_delete(app, client, posting):
     login(other, 'another')
     payload = {'csrf_token': csrf_token(other, '/'), 'action': 'like'}
     assert other.post(url, data=payload).status_code == 303
-    assert 'いいねを取り消す（2件）' in client.get('/').text
+    page = client.get('/').text
+    assert 'いいねを取り消す（2件）' in page
+    assert '<summary data-like-count aria-label="「いいね！」した人を表示（2件）">2</summary>' in page
+    assert '<li>yukari さん</li>' in page and '<li>another さん</li>' in page
     other.post(url, data={**payload, 'action': 'unlike'})
     assert 'いいねを取り消す（1件）' in client.get('/').text
     assert client.post(f'/posts/{post_id}/delete', data={'csrf_token': data['csrf_token']}).status_code == 303
     with app.app_context():
         assert Like.select().count() == 0
+
+
+def test_like_usernames_are_escaped_in_html_and_returned_for_ajax(app, client, posting):
+    data, _ = posting
+    post_id = client.post('/posts', data={**data, 'photo': picture()}).json['id']
+    unusual = app.test_client()
+    register(unusual, '<b>x</b>')
+    login(unusual, '<b>x</b>')
+    response = unusual.post(f'/posts/{post_id}/like', data={
+        'csrf_token': csrf_token(unusual, '/'), 'action': 'like'
+    }, headers={'X-Requested-With': 'XMLHttpRequest'})
+    assert response.status_code == 200
+    assert response.json['users'] == ['<b>x</b>']
+    page = app.test_client().get('/').text
+    assert '<li>&lt;b&gt;x&lt;/b&gt; さん</li>' in page
+    assert '<li><b>x</b> さん</li>' not in page
 
 
 def test_like_auth_csrf_and_private_posts(app, client, posting):

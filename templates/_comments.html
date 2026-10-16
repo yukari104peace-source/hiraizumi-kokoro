@@ -5,16 +5,18 @@
 <p class="comment-author">{{ comment.user.username }} <time datetime="{{ comment.created_at.isoformat() }}Z">{{ comment.created_at.strftime('%Y-%m-%d') }} UTC</time></p>
 <p class="comment-body">{{ comment.body }}</p>
 <div class="comment-actions">
+<div class="comment-like-control" data-like-control>
 {% if current_user.is_authenticated %}
 <form class="like-form comment-like-form" method="post" action="{{ url_for('comment_like', comment_id=comment.id) }}">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="page" value="{{ page }}">
 <input type="hidden" name="action" value="{{ 'unlike' if comment.id in liked_comment_ids else 'like' }}">
 <button class="comment-like-button{% if comment.id in liked_comment_ids %} is-liked{% endif %}" type="submit" aria-pressed="{{ 'true' if comment.id in liked_comment_ids else 'false' }}" aria-label="{{ 'コメントのいいねを取り消す' if comment.id in liked_comment_ids else 'コメントにいいねする' }}（{{ comment_like_counts.get(comment.id, 0) }}件）"><span aria-hidden="true">{{ '♥' if comment.id in liked_comment_ids else '♡' }}</span></button>
-<span class="comment-like-count" data-like-count aria-hidden="true">{{ comment_like_counts.get(comment.id, 0) }}</span>
 </form>
 {% else %}
-<span class="comment-like-control"><a class="comment-like-button" href="{{ url_for('login_form', next='/') }}" aria-label="ログインしてコメントにいいねする（{{ comment_like_counts.get(comment.id, 0) }}件）"><span aria-hidden="true">♡</span></a><span class="comment-like-count" aria-hidden="true">{{ comment_like_counts.get(comment.id, 0) }}</span></span>
+<a class="comment-like-button" href="{{ url_for('login_form', next='/') }}" aria-label="ログインしてコメントにいいねする（{{ comment_like_counts.get(comment.id, 0) }}件）"><span aria-hidden="true">♡</span></a>
 {% endif %}
+<details class="like-users comment-like-users" data-like-users-details data-like-target="コメント"><summary data-like-count aria-label="「いいね！」した人を表示（{{ comment_like_counts.get(comment.id, 0) }}件）">{{ comment_like_counts.get(comment.id, 0) }}</summary><div class="like-users-panel"><p>「いいね！」した人</p><ul data-like-users-list>{% for username in comment_like_users.get(comment.id, []) %}<li>{{ username }} さん</li>{% endfor %}</ul></div></details>
+</div>
 {% if current_user.is_authenticated and current_user.id == comment.user_id %}
 <form method="post" action="{{ url_for('comment_delete', comment_id=comment.id) }}" class="comment-delete-form">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="page" value="{{ page }}">

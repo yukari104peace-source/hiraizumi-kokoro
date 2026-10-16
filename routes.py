@@ -48,11 +48,17 @@ def register_routes(app):
         posts = list(query.paginate(page, 10))
         ids = [post.id for post in posts]
         counts = dict(Like.select(Like.post, fn.COUNT(Like.id)).where(Like.post.in_(ids)).group_by(Like.post).tuples()) if ids else {}
+        like_users = {post_id: [] for post_id in ids}
+        if ids:
+            for like in Like.select(Like, User).join(User).where(
+                    Like.post.in_(ids)).order_by(Like.created_at, Like.id):
+                like_users[like.post_id].append(like.user.username)
         liked = {row.post_id for row in Like.select(Like.post).where(
             (Like.user == current_user.id) & Like.post.in_(ids))} if ids and current_user.is_authenticated else set()
         comments = {post_id: [] for post_id in ids}
         replies = {}
         comment_like_counts = {}
+        comment_like_users = {}
         liked_comment_ids = set()
         if ids:
             visible_comments = list(Comment.select(Comment, User).join(User).where(
@@ -64,17 +70,23 @@ def register_routes(app):
                     comments[comment.post_id].append(comment)
             comment_ids = [comment.id for comment in visible_comments if not comment.is_deleted]
             if comment_ids:
+                comment_like_users = {comment_id: [] for comment_id in comment_ids}
                 comment_like_counts = dict(CommentLike.select(
                     CommentLike.comment, fn.COUNT(CommentLike.id)).where(
                     CommentLike.comment.in_(comment_ids)).group_by(CommentLike.comment).tuples())
+                for like in CommentLike.select(CommentLike, User).join(User).where(
+                        CommentLike.comment.in_(comment_ids)).order_by(CommentLike.created_at, CommentLike.id):
+                    comment_like_users[like.comment_id].append(like.user.username)
                 if current_user.is_authenticated:
                     liked_comment_ids = {row.comment_id for row in CommentLike.select(
                         CommentLike.comment).where((CommentLike.user == current_user.id) &
                                                    CommentLike.comment.in_(comment_ids))}
         return render_template("index.html", has_draft=has_draft, posts=posts, page=page,
-                               has_next=page * 10 < total, like_counts=counts, liked_ids=liked,
+                               has_next=page * 10 < total, like_counts=counts, like_users=like_users,
+                               liked_ids=liked,
                                comments=comments, replies=replies,
                                comment_like_counts=comment_like_counts,
+                               comment_like_users=comment_like_users,
                                liked_comment_ids=liked_comment_ids)
 
     def comment_return(post_id):
@@ -157,6 +169,8 @@ def register_routes(app):
                     CommentLike.delete().where((CommentLike.user == current_user.id) &
                                                (CommentLike.comment == comment.id)).execute()
                 count = CommentLike.select().where(CommentLike.comment == comment.id).count()
+                users = [row.user.username for row in CommentLike.select(CommentLike, User).join(User).where(
+                    CommentLike.comment == comment.id).order_by(CommentLike.created_at, CommentLike.id)]
                 total = Post.select().where(Post.status == "published").count()
         except DatabaseError:
             current_app.logger.exception("Could not update comment like")
@@ -164,7 +178,7 @@ def register_routes(app):
                 return jsonify(error="コメントのいいねを保存できませんでした。もう一度お試しください。"), 500
             return render_template("error.html", message="コメントのいいねを保存できませんでした。一覧に戻ってもう一度お試しください。"), 500
         if ajax:
-            return jsonify(liked=action == "like", count=count)
+            return jsonify(liked=action == "like", count=count, users=users)
         page = min(page, max(1, (total + 9) // 10))
         return redirect(url_for("index", page=page, _anchor=f"comment-{comment.id}"), code=303)
 
@@ -189,6 +203,8 @@ def register_routes(app):
                 else:
                     Like.delete().where((Like.user == current_user.id) & (Like.post == post_id)).execute()
                 count = Like.select().where(Like.post == post_id).count()
+                users = [row.user.username for row in Like.select(Like, User).join(User).where(
+                    Like.post == post_id).order_by(Like.created_at, Like.id)]
                 total = Post.select().where(Post.status == "published").count()
         except DatabaseError:
             current_app.logger.exception("Could not update like")
@@ -196,7 +212,7 @@ def register_routes(app):
                 return jsonify(error="いいねを保存できませんでした。もう一度お試しください。"), 500
             return render_template("error.html", message="いいねを保存できませんでした。一覧に戻ってもう一度お試しください。"), 500
         if ajax:
-            return jsonify(liked=action == "like", count=count)
+            return jsonify(liked=action == "like", count=count, users=users)
         page = min(page, max(1, (total + 9) // 10))
         return redirect(url_for("index", page=page, _anchor=f"post-{post_id}"), code=303)
 

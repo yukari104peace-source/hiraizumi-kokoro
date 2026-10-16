@@ -36,7 +36,11 @@ def test_comment_and_reply_likes_ajax_and_persistence(app, client, posting):
                 "csrf_token": token, "page": "1", "action": action
             }, headers=headers)
             assert response.status_code == 200
-            assert response.json == {"liked": liked, "count": count}
+            expected_user = "yukari" if comment_id == parent_id else "reader"
+            assert response.json == {
+                "liked": liked, "count": count,
+                "users": [expected_user] if liked else [],
+            }
 
     parent_url = f"/comments/{parent_id}/like"
     assert client.post(parent_url, data={
@@ -55,7 +59,9 @@ def test_comment_and_reply_likes_ajax_and_persistence(app, client, posting):
     ).group(0)
     assert 'class="comment-like-button is-liked"' in control
     assert '<span aria-hidden="true">♥</span></button>' in control
-    assert '<span class="comment-like-count" data-like-count aria-hidden="true">1</span>' in control
+    assert 'data-like-count' not in control
+    assert '<summary data-like-count aria-label="「いいね！」した人を表示（1件）">1</summary>' in page
+    assert '<li>yukari さん</li>' in page
     assert 'class="like-button comment-like-button' not in control
     assert " いいね " not in control
 
@@ -74,7 +80,11 @@ def test_comment_like_multiple_users_anonymous_and_delete(app, client, posting):
         "csrf_token": csrf_token(other, "/"), "page": "1", "action": "like"
     })
     assert "コメントのいいねを取り消す（2件）" in client.get("/").text
-    assert "ログインしてコメントにいいねする（2件）" in app.test_client().get("/").text
+    anonymous_page = app.test_client().get("/").text
+    assert "ログインしてコメントにいいねする（2件）" in anonymous_page
+    assert '<summary data-like-count aria-label="「いいね！」した人を表示（2件）">2</summary>' in anonymous_page
+    assert '<li>yukari さん</li>' in anonymous_page
+    assert '<li>another さん</li>' in anonymous_page
 
     response = client.post(f"/comments/{comment_id}/delete", data={
         "csrf_token": csrf_token(client, "/"), "page": "1"

@@ -1,6 +1,27 @@
+function updateLikeUsers(control, result) {
+  const details = control.querySelector('[data-like-users-details]');
+  const count = details.querySelector('[data-like-count]');
+  const list = details.querySelector('[data-like-users-list]');
+  count.textContent = result.count;
+  count.setAttribute('aria-label', `「いいね！」した人を表示（${result.count}件）`);
+  list.replaceChildren(...result.users.map(username => {
+    const item = document.createElement('li');
+    item.textContent = `${username} さん`;
+    return item;
+  }));
+  if (result.count === 0) details.open = false;
+}
+
+for (const details of document.querySelectorAll('[data-like-users-details]')) {
+  const count = details.querySelector('[data-like-count]');
+  count.addEventListener('click', event => {
+    if (Number.parseInt(count.textContent, 10) === 0) event.preventDefault();
+  });
+}
+
 for (const form of document.querySelectorAll('.like-form')) {
   const button = form.querySelector('button[type="submit"]');
-  const count = form.querySelector('[data-like-count]') || button.querySelector('span:last-child');
+  const control = form.closest('[data-like-control]');
   const status = document.createElement('p');
   status.className = 'like-status';
   status.setAttribute('role', 'status');
@@ -21,7 +42,8 @@ for (const form of document.querySelectorAll('.like-form')) {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || '保存できませんでした。もう一度お試しください。');
-      if (typeof result.liked !== 'boolean' || !Number.isInteger(result.count)) {
+      if (typeof result.liked !== 'boolean' || !Number.isInteger(result.count) ||
+          !Array.isArray(result.users) || !result.users.every(username => typeof username === 'string')) {
         throw new Error('結果を確認できませんでした。もう一度お試しください。');
       }
       button.classList.toggle('is-liked', result.liked);
@@ -31,7 +53,7 @@ for (const form of document.querySelectorAll('.like-form')) {
         : (result.liked ? 'いいねを取り消す' : 'いいねする');
       button.setAttribute('aria-label', `${label}（${result.count}件）`);
       button.querySelector('[aria-hidden]').textContent = result.liked ? '♥' : '♡';
-      count.textContent = result.count;
+      updateLikeUsers(control, result);
       form.elements.namedItem('action').value = result.liked ? 'unlike' : 'like';
     } catch (error) {
       status.textContent = error instanceof TypeError || error instanceof SyntaxError
