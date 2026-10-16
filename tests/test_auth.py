@@ -1,4 +1,5 @@
 import time
+from urllib.parse import parse_qs, urlparse
 from models import User
 from conftest import csrf_token, login, register
 
@@ -36,6 +37,34 @@ def test_no_external_redirect(client):
     register(client)
     response = login(client, next="https://example.com/steal")
     assert response.location == "/"
+
+
+def test_posting_starts_with_registration_for_anonymous_user(client):
+    index = client.get("/")
+    assert 'href="/register?next=/posts/new"' in index.text
+
+    response = client.get("/posts/new")
+    assert response.status_code == 302
+    assert response.location == "/register?next=/posts/new"
+
+
+def test_registration_and_login_keep_posting_destination(client):
+    registration = client.get("/register?next=/posts/new")
+    assert 'href="/login?next=/posts/new"' in registration.text
+
+    response = client.post("/register", data={
+        "csrf_token": csrf_token(client, "/register?next=/posts/new"),
+        "username": "yukari",
+        "password": "test-password-123",
+        "next": "/posts/new",
+    })
+    assert response.status_code == 303
+    assert parse_qs(urlparse(response.location).query) == {"next": ["/posts/new"]}
+
+    response = login(client, next="/posts/new")
+    assert response.status_code == 303
+    assert response.location == "/posts/new"
+    assert client.get("/posts/new").status_code == 200
 
 
 def test_session_expiry(app, client, monkeypatch):

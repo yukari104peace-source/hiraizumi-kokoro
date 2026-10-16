@@ -26,6 +26,8 @@ def load_user(user_id):
 def unauthorized():
     if request.method != "GET":
         abort(401)
+    if request.endpoint == "post_new":
+        return redirect(url_for("register_form", next=request.path))
     return redirect(url_for("login_form", next=request.path))
 
 
